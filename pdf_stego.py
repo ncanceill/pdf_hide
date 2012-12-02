@@ -21,7 +21,7 @@ class PDF_stego:
 	def embed(self):
 		cover_file = open(self.file_op.file_name + ".uncomp.pdf")
 		for line in cover_file:
-			m = re.match(r'\[.*\][ ]?TJ',line)
+			m = re.search(r'\[.*\][ ]?TJ',line) #WARNING: use "search", DO NOT use "match"
 			if m != None:
 				print(line+ "\n") 
 			
