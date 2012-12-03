@@ -23,7 +23,7 @@ class PDF_file:
 	def compress(self):
 		os.system('qpdf '+self.file_name+' '+self.file_name+'.comp.pdf --stream-data=compress')
 
-# Handle 015 numeral integers
+# Handle 015 and 116 numeral integers, and binary strings, and other stuff
 class Numerals:
 	#nbits = 4
 	
@@ -32,12 +32,6 @@ class Numerals:
 
 	def binstr_to_num(self,str):
 		return int(str,2) % 16
-	
-	#def bin_to_binstr(self,bin):
-	#	return str(bin) if bin<=1 else bin(bin>>1) + str(bin&1)
-	
-	#def bin_to_str(self,bin):
-	#	return binascii.unhexlify('%x' % int(bin,2))
 	
 	def hexstr_to_num(self,h):
 		return int(h,16) % 16
@@ -56,8 +50,17 @@ class Numerals:
 	def msg_to_nums(self,msg):
 		return map(self.binstr_to_num,self.split_len(self.str_to_binstr(msg),4))
 	
-	def encode(self,msg,key):
+	def encode_msg(self,msg,key):
 		return [self.digest_to_nums(self.digest(msg)),self.msg_to_nums(msg),self.digest_to_nums(self.digest(key))]
+	
+	def encode_key(self,key):
+		return map(lambda x: x + 1,self.digest_to_nums(self.digest(key)))
+
+#def bin_to_binstr(self,bin):
+#	return str(bin) if bin<=1 else bin(bin>>1) + str(bin&1)
+
+#def bin_to_str(self,bin):
+#	return binascii.unhexlify('%x' % int(bin,2))
 
 # Generate chaotic maps
 class Chaotic:
@@ -84,13 +87,9 @@ class PDF_stego:
 	redundancy = 0.1
 	mu_one = 3.7
 	mu_two = 3.8
-	passkey = ''
-	data = ''
 	
-	def __init__(self,name,passkey,data):
-		self.passkey = passkey
-		self.data = data
-		self.file_op = PDF_file(name)
+	def __init__(self,input):
+		self.file_op = PDF_file(input)
 		self.file_op.uncompress()
 	
 	# Returns a list res[]
@@ -99,20 +98,19 @@ class PDF_stego:
 	# res[1] is the new operator value (regardless of res[0])
 	# Pass None as num to significate that the IND has been taken to finish
 	def embed_op(self,val,ch_one,ch_two,num):
-		if abs(val) > 16:
+		if abs(val) > 16 or val == 0:
 			return [False,val]
 		if ch_two < self.redundancy or num == None:
-			return [False,ch_one]
+			return [False,int(15*ch_one)+1]
 		if val < 0:
-			return [True, -num]
-		return [True, num]
+			return [True, -num - 1]
+		return [True, num + 1]
 
 	def embed_line(self,line,ch_one,ch_two,ind,i):
 		newline = line
 		i_ = i
 		k = 0
 		while k < newline.__len__():
-			# WARNING: use "re.search", DO NOT use "re.match"
 			m = re.search(r'\)(\-?[0-9]+)\(',newline[k:])
 			if m == None:
 				k = newline.__len__()
@@ -125,19 +123,18 @@ class PDF_stego:
 				if op[0]:
 					i_ += 1
 				newline = newline[:k + m.start(1)] + str(op[1]) + newline[k + m.end(1):]
-				k = k + m.start(1) + str(op[1]).__len__()
+				k += m.start(1) + str(op[1]).__len__()
 		return [newline,i_]
 	
-	def embed(self):
+	def embed(self,passkey,data):
 		cover_file = open(self.file_op.file_name + ".uncomp.pdf")
 		new_file = ""
-		nums = Numerals().encode(self.data, self.passkey)
+		nums = Numerals().encode_msg(data,passkey)
 		ch_one = Chaotic(self.mu_one,nums[2])
 		ch_two = Chaotic(self.mu_two,nums[2])
 		ind = nums[0] + nums[1] + nums[2]
 		i = 0
 		for line in cover_file:
-			# WARNING: use "re.search", DO NOT use "re.match"
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m == None:
 				new_file += line
@@ -145,10 +142,49 @@ class PDF_stego:
 				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i)
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
-		output_file = open(self.file_op.file_name + ".out.pdf","w")
-		output_file.write(new_file)
-		output = PDF_file(self.file_op.file_name + ".out.pdf")
-		output.compress()
+		if i < ind.__len__():
+			print "Error: not enough space available"
+		else:
+			output_file = open(self.file_op.file_name + ".out.pdf","w")
+			output_file.write(new_file)
+			#output = PDF_file(self.file_op.file_name + ".out.pdf")
+			#output.compress() # TODO: update checksum
+
+	def extract_op(self,val):
+		if abs(val) < 16 or val == 0 or ch_two < self.redundancy:
+			return 0
+		return val
+
+	def extract_line(self,line):
+		k = 0
+		tjs = []
+		while k < line.__len__():
+			m = re.search(r'\)(\-?[0-9]+)\(',line[k:])
+			if m == None:
+				k = newline.__len__()
+			else:
+				tj = self.extract_op(int(m.group(1)))
+				if tj != 0:
+					tjs += []
+				k += m.end(1)
+		return tjs
+
+	def extract(self,derived_key):
+		embedding_file = open(self.file_op.file_name + ".uncomp.pdf")
+		nums = Numerals().encode_key(derived_key)
+		ch_two = Chaotic(self.mu_two,nums)
+		tjs = []
+		for line in cover_file:
+			m = re.search(r'\[(.*)\][ ]?TJ',line)
+			if m == None:
+				new_file += line
+			else:
+				tjs += self.extract_line(line)
+		if tjs.__len__() < 41:
+			print "Error: not enough valid data to retrieve message"
+		else:
+			checkstr = tjs[:20]
+			new_file = tjs[20:tjs.__len__() - 20] # TODO: write it and check the result
 
 #
 #
@@ -167,11 +203,15 @@ def print_nums(name, nums):
 #
 
 # Encoding message and key to numerals
-#nums = Numerals().encode("lorem ipsum sin dolor amet", "abcd1234")
-#print_nums('Flagstr1', nums[0])
-#print_nums('Message', nums[1])
-#print_nums('Flagstr2', nums[2])
+#nums = Numerals().encode_msg("lorem ipsum sin dolor amet","abcd1234")
+#print_nums('Flagstr1',nums[0])
+#print_nums('Message',nums[1])
+#print_nums('Flagstr2',nums[2])
 
-# Running the whole alogorithm
-#ps = PDF_stego("test.pdf","lorem ipsum sin dolor amet","abcd1234")
-#ps.embed()
+# Encoding derived key to numerals
+#nums = Numerals().encode_key("abcd1234")
+#print_nums('Flagstr',nums)
+
+# Running the embedding alogorithm
+#ps = PDF_stego("test.pdf")
+#ps.embed("lorem ipsum sin dolor amet","abcd1234")
