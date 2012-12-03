@@ -21,8 +21,7 @@ class PDF_file:
 		os.system('qpdf '+self.file_name+' '+self.file_name+'.uncomp.pdf --stream-data=uncompress')
 	
 	def compress(self):
-		# TODO
-		return 0
+		os.system('qpdf '+self.file_name+' '+self.file_name+'.comp.pdf --stream-data=compress')
 
 # Handle 015 numeral integers
 class Numerals:
@@ -146,7 +145,10 @@ class PDF_stego:
 				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i)
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
-		return new_file # TODO create and compress new pdf
+		output_file = open(self.file_op.file_name + ".out.pdf","w")
+		output_file.write(new_file)
+		output = PDF_file(self.file_op.file_name + ".out.pdf")
+		output.compress()
 
 #
 #
