@@ -113,7 +113,7 @@ class PDF_stego:
 		i_ = i
 		k = 0
 		while k < newline.__len__():
-			m = re.search(r'\)(\-?[0-9]+)\(',newline[k:])
+			m = re.search(r'[>)](\-?[0-9]+)[<(]',newline[k:])
 			if m == None:
 				k = newline.__len__()
 			else:
@@ -146,12 +146,14 @@ class PDF_stego:
 				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i)
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
+		cover_file.close()
 		if i < ind.__len__():
 			print "Error: not enough space available"
 		else:
 			output_file = open(self.file_op.file_name + ".out.pdf","w")
 			output_file.write(new_file)
 			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.pdf\""
+			output_file.close()
 			#output = PDF_file(self.file_op.file_name + ".out.pdf")
 			#output.compress() # TODO: update checksum
 
@@ -164,7 +166,7 @@ class PDF_stego:
 		k = 0
 		tjs = []
 		while k < line.__len__():
-			m = re.search(r'\)(\-?[0-9]+)\(',line[k:])
+			m = re.search(r'[>)](\-?[0-9]+)[<(]',line[k:])
 			if m == None:
 				k = line.__len__()
 			else:
@@ -188,6 +190,7 @@ class PDF_stego:
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m != None:
 				tjs += self.extract_line(line,ch_two)
+		embedding_file.close()
 		if tjs.__len__() < 42:
 			print "Error: not enough valid data to retrieve message: 42 > " + str(tjs.__len__())
 		else:
@@ -202,11 +205,13 @@ class PDF_stego:
 				print "Error: CheckStr does not match embedded data:"
 				print_nums('Data Checksum',n.encode_key(emb_str))
 				print_nums('CheckStr',checkstr)
-				print "Raw data (corrupted): " + emb_str
+				print "===== Raw data (corrupted) ====="
+				print emb_str
 			else:
 				output_file = open(self.file_op.file_name + ".embd","w")
 				output_file.write(emb_str)
 				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\""
+				output_file.close()
 
 #
 #
