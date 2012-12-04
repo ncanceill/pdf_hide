@@ -133,7 +133,7 @@ class PDF_stego:
 		self.tj_count = 0
 		if self.debug:
 			print "\n========== BEGIN EMBED ==========\n"
-		print "Embedding \"" + data + "\" with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".uncomp.pdf\"..."
+		print "Embedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".uncomp.pdf\"..."
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".uncomp.pdf")
 		new_file = ""
@@ -156,12 +156,13 @@ class PDF_stego:
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
 		cover_file.close()
+		print "Embedded:\n\"" + data + "\""
 		if i < ind.__len__():
 			print "Error: not enough space available"
 		else:
 			output_file = open(self.file_op.file_name + ".out.pdf","w")
 			output_file.write(new_file)
-			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)"
+			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)\n"
 			output_file.close()
 			#output = PDF_file(self.file_op.file_name + ".out.pdf")
 			#output.compress() # TODO: update checksum
@@ -228,9 +229,10 @@ class PDF_stego:
 					print "===== Raw data (corrupted) ====="
 					print emb_str
 			else:
+				print "Extracted:\n\"" + emb_str + "\""
 				output_file = open(self.file_op.file_name + ".embd","w")
 				output_file.write(emb_str)
-				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)"
+				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
 				output_file.close()
 		if self.debug:
 			print "\n========== END EXTRACT ==========\n"
@@ -277,9 +279,9 @@ def print_nums(name, nums):
 #print_nums('FlagStr',nums)
 
 # Running the embedding alogorithm
-ps = PDF_stego("test.pdf",True)
-ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit.","abcdefgh")
+ps = PDF_stego("test.pdf",False)
+ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit. 1234567890123457890 abcd","abcdefgh")
 
 # Running the extracting alogorithm
-ps = PDF_stego("test.pdf.out.pdf",True)
+ps = PDF_stego("test.pdf.out.pdf",False)
 ps.extract("abcdefgh")
