@@ -48,9 +48,7 @@ class Numerals:
 		return [seq[i:i+length] for i in range(0,len(seq),length)]
 	
 	def digest(self,str):
-		h = hashlib.sha1()
-		h.update(str)
-		return h.hexdigest()
+		return hashlib.sha1(str).hexdigest()
 	
 	def digest_to_nums(self,d):
 		return map(self.hexstr_to_num,self.split_len(self.digest(d),2))
@@ -62,7 +60,7 @@ class Numerals:
 		return [self.digest_to_nums(msg),self.msg_to_nums(msg),self.digest_to_nums(key)]
 	
 	def encode_key(self,key):
-		return map(lambda x: x + 1,self.digest_to_nums(key))
+		return self.digest_to_nums(key)
 
 # Generate chaotic maps
 class Chaotic:
@@ -86,12 +84,15 @@ class Chaotic:
 
 # Perform the stego algorithm
 class PDF_stego:
+	debug = False
 	redundancy = 0.1
 	mu_one = 3.7
 	mu_two = 3.9
+	tj_count = 0
 	
-	def __init__(self,input):
+	def __init__(self,input,debug):
 		self.file_op = PDF_file(input)
+		self.debug = debug
 	
 	# Returns a list res[]
 	# If res[0] == True then num was embedded, move on to next numeral
@@ -99,6 +100,7 @@ class PDF_stego:
 	# res[1] is the new operator value (regardless of res[0])
 	# Pass None as num to significate that the IND has been taken to finish
 	def embed_op(self,val,ch_one,ch_two,num):
+		self.tj_count += 1
 		if abs(val) > 16 or val == 0:
 			return [False,val]
 		if ch_two < self.redundancy or num == None:
@@ -128,11 +130,19 @@ class PDF_stego:
 		return [newline,i_]
 	
 	def embed(self,data,passkey):
+		self.tj_count = 0
+		if self.debug:
+			print "\n========== BEGIN EMBED ==========\n"
 		print "Embedding \"" + data + "\" with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".uncomp.pdf\"..."
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".uncomp.pdf")
 		new_file = ""
-		nums = Numerals().encode_msg(data,passkey)
+		n = Numerals()
+		nums = n.encode_msg(data,passkey)
+		if self.debug:
+			print_nums('FlagStr1 (CheckStr)',nums[0])
+			print_nums('FlagStr2',nums[2])
+			print_nums('Data',n.msg_to_nums(data))
 		ch_one = Chaotic(self.mu_one,nums[2])
 		ch_two = Chaotic(self.mu_two,nums[2])
 		ind = nums[0] + nums[1] + nums[2]
@@ -151,12 +161,15 @@ class PDF_stego:
 		else:
 			output_file = open(self.file_op.file_name + ".out.pdf","w")
 			output_file.write(new_file)
-			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.pdf\""
+			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)"
 			output_file.close()
 			#output = PDF_file(self.file_op.file_name + ".out.pdf")
 			#output.compress() # TODO: update checksum
+		if self.debug:
+			print "\n========== END EMBED ==========\n"
 
 	def extract_op(self,val,ch_two):
+		self.tj_count += 1
 		if abs(val) > 16 or val == 0 or ch_two < self.redundancy:
 			return 0
 		return abs(val)
@@ -169,13 +182,16 @@ class PDF_stego:
 			if m == None:
 				k = line.__len__()
 			else:
-				tj = self.extract_op(int(m.group(1)),ch_two.next)
+				tj = self.extract_op(int(m.group(1)),ch_two.next())
 				if tj != 0:
 					tjs += [tj - 1]
 				k += m.end(1)
 		return tjs
 
 	def extract(self,derived_key):
+		self.tj_count = 0
+		if self.debug:
+			print "\n========== BEGIN EXTRACT ==========\n"
 		print "Extracting with key \"" + derived_key + "\" from file \"" + self.file_op.file_name + "\"..."
 		# Only works for valid PDF files
 		#self.file_op.uncompress()
@@ -183,6 +199,8 @@ class PDF_stego:
 		embedding_file = open(self.file_op.file_name)
 		n = Numerals()
 		nums = n.encode_key(derived_key)
+		if self.debug:
+			print_nums('FlagStr',nums)
 		ch_two = Chaotic(self.mu_two,nums)
 		tjs = []
 		for line in embedding_file:
@@ -195,22 +213,27 @@ class PDF_stego:
 		else:
 			checkstr = tjs[:20]
 			embedded = tjs[20:tjs.__len__() - 20]
-			k = 1
+			k = 0
 			emb_str = ""
 			while k < embedded.__len__() - 1:
 				emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
 				k += 2
-			if n.digest_to_nums(emb_str) != checkstr:
-				print "Error: CheckStr does not match embedded data:"
+			if self.debug:
 				print_nums('Data Checksum',n.encode_key(emb_str))
 				print_nums('CheckStr',checkstr)
-				print "===== Raw data (corrupted) ====="
-				print emb_str
+				print_nums('Data',n.msg_to_nums(emb_str))
+			if n.digest_to_nums(emb_str) != checkstr: # TODO: manage trailing characters
+				print "Error: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)"
+				if self.debug:
+					print "===== Raw data (corrupted) ====="
+					print emb_str
 			else:
 				output_file = open(self.file_op.file_name + ".embd","w")
 				output_file.write(emb_str)
-				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\""
+				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)"
 				output_file.close()
+		if self.debug:
+			print "\n========== END EXTRACT ==========\n"
 
 #
 #
@@ -254,9 +277,9 @@ def print_nums(name, nums):
 #print_nums('FlagStr',nums)
 
 # Running the embedding alogorithm
-ps = PDF_stego("test.pdf")
-ps.embed("lorem ipsum","abcdefghij")
+ps = PDF_stego("test.pdf",True)
+ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit.","abcdefgh")
 
 # Running the extracting alogorithm
-ps = PDF_stego("test.pdf.out.pdf")
-ps.extract("abcdefghij")
+ps = PDF_stego("test.pdf.out.pdf",True)
+ps.extract("abcdefgh")
