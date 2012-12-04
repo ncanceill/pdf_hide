@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import os
 import re
-import binascii
 import hashlib
 
 #
@@ -28,7 +27,13 @@ class Numerals:
 	#nbits = 4
 	
 	def str_to_binstr(self,str):
-		return bin(int(binascii.hexlify(str), 16))
+		if str.__len__() < 1:
+			return ""
+		else:
+			b = bin(ord(str[0]))[2:]
+			while b.__len__() < 8:
+				b = "0" + b
+			return b + self.str_to_binstr(str[1:])
 
 	def binstr_to_num(self,str):
 		return int(str,2) % 16
@@ -58,12 +63,6 @@ class Numerals:
 	
 	def encode_key(self,key):
 		return map(lambda x: x + 1,self.digest_to_nums(key))
-
-#def bin_to_binstr(self,bin):
-#	return str(bin) if bin<=1 else bin(bin>>1) + str(bin&1)
-
-#def bin_to_str(self,bin):
-#	return binascii.unhexlify('%x' % int(bin,2))
 
 # Generate chaotic maps
 class Chaotic:
@@ -196,7 +195,7 @@ class PDF_stego:
 		else:
 			checkstr = tjs[:20]
 			embedded = tjs[20:tjs.__len__() - 20]
-			k = 0
+			k = 1
 			emb_str = ""
 			while k < embedded.__len__() - 1:
 				emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
@@ -229,6 +228,21 @@ def print_nums(name, nums):
 # TESTS & EXAMPLES
 #
 
+# Basic numeral-string-binary conversions
+#n = Numerals()
+#msg = "lorem ipsum"
+#nums = n.msg_to_nums(msg)
+#bin_ = n.str_to_binstr(msg)
+#print bin_
+#print n.split_len(bin_,4)
+#print nums
+#st = ""
+#k = 0
+#while k < nums.__len__() - 1:
+#	st += n.nums_to_ch(nums[k],nums[k + 1])
+#	k += 2
+#print st
+
 # Encoding message and key to numerals
 #nums = Numerals().encode_msg("lorem ipsum sin dolor amet","abcd1234")
 #print_nums('FlagStr1',nums[0])
@@ -241,8 +255,8 @@ def print_nums(name, nums):
 
 # Running the embedding alogorithm
 ps = PDF_stego("test.pdf")
-ps.embed("lorem ipsum","abcd1234")
+ps.embed("lorem ipsum","abcdefghij")
 
 # Running the extracting alogorithm
 ps = PDF_stego("test.pdf.out.pdf")
-ps.extract("abcd1234")
+ps.extract("abcdefghij")
