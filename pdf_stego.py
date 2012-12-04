@@ -200,7 +200,7 @@ class PDF_stego:
 			emb_str = ""
 			while k < embedded.__len__() - 1:
 				emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
-				k += 1
+				k += 2
 			if n.digest_to_nums(emb_str) != checkstr:
 				print "Error: CheckStr does not match embedded data:"
 				print_nums('Data Checksum',n.encode_key(emb_str))
