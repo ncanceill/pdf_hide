@@ -15,12 +15,15 @@ class PDF_file:
 	
 	def __init__(self,file_name):
 		self.file_name = file_name
-	
+
 	def uncompress(self):
-		os.system('qpdf '+self.file_name+' '+self.file_name+'.uncomp.pdf --stream-data=uncompress')
+		os.system('qpdf '+self.file_name+' '+self.file_name+'.qdf --qdf --stream-data=uncompress')
+
+	def fix(self):
+		os.system('fix-qdf <'+self.file_name+' >'+self.file_name+'.fix')
 	
 	def compress(self):
-		os.system('qpdf '+self.file_name+' '+self.file_name+'.comp.pdf --stream-data=compress')
+		os.system('qpdf '+self.file_name+' '+self.file_name+'.pdf --stream-data=compress')
 
 # Handle 015 and 116 numeral integers, and binary strings, and other stuff
 class Numerals:
@@ -135,7 +138,7 @@ class PDF_stego:
 			print "\n========== BEGIN EMBED ==========\n"
 		print "Embedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".uncomp.pdf\"..."
 		self.file_op.uncompress()
-		cover_file = open(self.file_op.file_name + ".uncomp.pdf")
+		cover_file = open(self.file_op.file_name + ".qdf")
 		new_file = ""
 		n = Numerals()
 		nums = n.encode_msg(data,passkey)
@@ -160,12 +163,14 @@ class PDF_stego:
 		if i < ind.__len__():
 			print "Error: not enough space available"
 		else:
-			output_file = open(self.file_op.file_name + ".out.pdf","w")
+			output_file = open(self.file_op.file_name + ".out","w")
 			output_file.write(new_file)
-			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)\n"
 			output_file.close()
-			#output = PDF_file(self.file_op.file_name + ".out.pdf")
-			#output.compress() # TODO: update checksum
+			output = PDF_file(self.file_op.file_name + ".out")
+			output.fix()
+			output_fixed = PDF_file(self.file_op.file_name + ".out.fix")
+			output_fixed.compress()
+			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)\n"
 		if self.debug:
 			print "\n========== END EMBED ==========\n"
 
@@ -195,9 +200,8 @@ class PDF_stego:
 			print "\n========== BEGIN EXTRACT ==========\n"
 		print "Extracting with key \"" + derived_key + "\" from file \"" + self.file_op.file_name + "\"..."
 		# Only works for valid PDF files
-		#self.file_op.uncompress()
-		#embedding_file = open(self.file_op.file_name + ".uncomp.pdf")
-		embedding_file = open(self.file_op.file_name)
+		self.file_op.uncompress()
+		embedding_file = open(self.file_op.file_name + '.qdf')
 		n = Numerals()
 		nums = n.encode_key(derived_key)
 		if self.debug:
@@ -283,5 +287,5 @@ ps = PDF_stego("test.pdf",False)
 ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit. 1234567890123457890 abcd","abcdefgh")
 
 # Running the extracting alogorithm
-ps = PDF_stego("test.pdf.out.pdf",False)
+ps = PDF_stego("test.pdf.out.fix.pdf",False)
 ps.extract("abcdefgh")
