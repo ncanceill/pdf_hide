@@ -162,6 +162,7 @@ class PDF_stego:
 		print "Embedded:\n\"" + data + "\""
 		if i < ind.__len__():
 			print "Error: not enough space available"
+			return 0
 		else:
 			output_file = open(self.file_op.file_name + ".out","w")
 			output_file.write(new_file)
@@ -170,7 +171,8 @@ class PDF_stego:
 			output.fix()
 			output_fixed = PDF_file(self.file_op.file_name + ".out.fix")
 			output_fixed.compress()
-			print "Wrote uncompressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)\n"
+			print "Wrote compressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)\n"
+			return nums[1].__len__()
 		if self.debug:
 			print "\n========== END EMBED ==========\n"
 
@@ -194,7 +196,7 @@ class PDF_stego:
 				k += m.end(1)
 		return tjs
 
-	def extract(self,derived_key):
+	def extract(self,derived_key,length):
 		self.tj_count = 0
 		if self.debug:
 			print "\n========== BEGIN EXTRACT ==========\n"
@@ -213,21 +215,21 @@ class PDF_stego:
 			if m != None:
 				tjs += self.extract_line(line,ch_two)
 		embedding_file.close()
-		if tjs.__len__() < 42:
-			print "Error: not enough valid data to retrieve message: 42 > " + str(tjs.__len__())
+		if tjs.__len__() < 40 + length:
+			print "Error: not enough valid data to retrieve message: " + str(40 + length) + " > " + str(tjs.__len__())
 		else:
 			checkstr = tjs[:20]
 			embedded = tjs[20:tjs.__len__() - 20]
 			k = 0
 			emb_str = ""
-			while k < embedded.__len__() - 1:
+			while k < length - 1:
 				emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
 				k += 2
 			if self.debug:
 				print_nums('Data Checksum',n.encode_key(emb_str))
 				print_nums('CheckStr',checkstr)
 				print_nums('Data',n.msg_to_nums(emb_str))
-			if n.digest_to_nums(emb_str) != checkstr: # TODO: manage trailing characters
+			if n.digest_to_nums(emb_str) != checkstr:
 				print "Error: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)"
 				if self.debug:
 					print "===== Raw data (corrupted) ====="
@@ -236,7 +238,7 @@ class PDF_stego:
 				print "Extracted:\n\"" + emb_str + "\""
 				output_file = open(self.file_op.file_name + ".embd","w")
 				output_file.write(emb_str)
-				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
+				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length) + " of them used for data)\n"
 				output_file.close()
 		if self.debug:
 			print "\n========== END EXTRACT ==========\n"
@@ -284,8 +286,8 @@ def print_nums(name, nums):
 
 # Running the embedding alogorithm
 ps = PDF_stego("test.pdf",False)
-ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit. 1234567890123457890 abcd","abcdefgh")
+l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit.","abcdefgh")
 
 # Running the extracting alogorithm
 ps = PDF_stego("test.pdf.out.fix.pdf",False)
-ps.extract("abcdefgh")
+ps.extract("abcdefgh",l)
