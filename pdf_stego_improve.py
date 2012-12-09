@@ -142,7 +142,9 @@ class PDF_stego:
 				# No more TJ ops
 				k = line.__len__()
 			else:
-				tjs += [int(m.group(1))]
+				val = int(m.group(1))
+				if abs(val) < 16 and val != 0:
+					tjs += [val]
 				k += m.end(1)
 		return tjs
 	
@@ -232,11 +234,12 @@ class PDF_stego:
 			if m != None:
 				tjs += self.get_tjs(m.group(1))
 		jitter = int(n.mean(tjs) - n.mean(ind))
-		ind_ = map(lambda x: (x + jitter) % 16,ind)
+		ind = map(lambda x: (x + jitter) % 16,ind)
 		if self.debug:
 			print_nums('FlagStr1 (CheckStr)',nums[0])
 			print_nums('FlagStr2',nums[2])
 			print_nums('Data',n.msg_to_nums(data))
+			print "===== Jitter: " + str(jitter) + " ====="
 		# Initiate chaotic maps
 		ch_one = Chaotic(self.mu_one,nums[2])
 		ch_two = Chaotic(self.mu_two,nums[2])
@@ -251,14 +254,14 @@ class PDF_stego:
 				new_file += line
 			else:
 				# Try to embed data in TJ block
-				newline = self.embed_line(m.group(1),ch_one,ch_two,ind_,i)
+				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i)
 				# Insert new block
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
 		cover_file.close()
 		print "Embedded:\n\"" + data + "\""
-		if i < ind_.__len__():
-			print "Error: not enough space available (only " + str(self.tj_count) + ", " + str(ind_.__len__()) + " needed."
+		if i < ind.__len__():
+			print "Error: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed."
 			if self.debug:
 				print "\n========== END EMBED ==========\n"
 			return [0,0]
@@ -399,9 +402,9 @@ def print_nums(name, nums):
 #print_nums('FlagStr',nums)
 
 # Running the embedding alogorithm
-ps = PDF_stego("test.pdf",False)
+ps = PDF_stego("test.pdf",True)
 l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit.","abcdefgh")
 
 # Running the extracting alogorithm
-ps = PDF_stego("test.pdf.out.fix.pdf",False)
+ps = PDF_stego("test.pdf.out.fix.pdf",True)
 ps.extract("abcdefgh",l[0],l[1])
