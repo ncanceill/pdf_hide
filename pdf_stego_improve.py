@@ -189,12 +189,12 @@ class PDF_stego:
 	# If res[0] == True then num was embedded, move on to next numeral
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
-	def embed_op(self,val,ch_one,ch_two,num):
+	def embed_op(self,val,ch_one,ch_two,num,start):
 		if abs(val) > 16 or val == 0:
 			# Do not use TJ op
 			return [False,val]
 		self.tj_count += 1
-		if ch_two < self.redundancy or num == None:
+		if ch_two < self.redundancy or num == None or self.tj_count <= start:
 			# Use TJ op for a random value
 			if val < 0:
 				return [False,-(int(15 * ch_one) + 1 )]
@@ -215,7 +215,7 @@ class PDF_stego:
 	# Returns a list res[]
 	# res[0] is the modified line
 	# res[1] is the new value of the IND index
-	def embed_line(self,line,ch_one,ch_two,ind,i):
+	def embed_line(self,line,ch_one,ch_two,ind,i,start):
 		newline = line
 		i_ = i
 		k = 0
@@ -229,10 +229,10 @@ class PDF_stego:
 				tj = int(m.group(1))
 				if i_ < ind.__len__():
 					# Try to embed numeral
-					op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_])
+					op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_],start)
 				else:
 					# No more numerals to embed
-					op = self.embed_op(tj,ch_one.next(),ch_two.next(),None)
+					op = self.embed_op(tj,ch_one.next(),ch_two.next(),None,start)
 				if op[0]:
 					# One numeral was embedded, update IND index
 					i_ += 1
@@ -249,7 +249,7 @@ class PDF_stego:
 		self.tj_count = 0
 		if self.debug:
 			print "\n========== BEGIN EMBED ==========\n"
-		print "Embedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".qdf\"..."
+		print "\nEmbedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".qdf\"...\n"
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf")
 		new_file = ""
@@ -270,11 +270,14 @@ class PDF_stego:
 			print_nums('FlagStr1 (CheckStr)',nums[0])
 			print_nums('FlagStr2',nums[2])
 			print_nums('Data',n.msg_to_nums(data))
-			print "===== Jitter: " + str(jitter) + " =====\n"
+			print "===== Jitter: " + str(jitter) + " ====="
 		# Initiate chaotic maps
 		ch_one = Chaotic(self.mu_one,nums[2])
 		ch_two = Chaotic(self.mu_two,nums[2])
 		# Parse file
+		start = int((tjs.__len__() - ind.__len__()) * ch_one.next())
+		if self.debug:
+			print "===== Random start position: " + str(start) + " ====="
 		i = 0
 		cover_file.seek(0,0)
 		for line in cover_file:
@@ -285,11 +288,11 @@ class PDF_stego:
 				new_file += line
 			else:
 				# Try to embed data in TJ block
-				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i)
+				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start)
 				# Insert new block
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
-		if self.debug:
+		if 0:#self.debug:
 			cover_file.seek(0,0)
 			tjss = []
 			# Parse file
@@ -304,12 +307,12 @@ class PDF_stego:
 			print "======== TJ unsigned average before: " + str(n.avg(tjs)) + " ========"
 		cover_file.close()
 		if i < ind.__len__():
-			print "Error: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed)."
+			print "\nError: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed).\n"
 			if self.debug:
 				print "\n========== END EMBED ==========\n"
 			return [0,0]
 		else:
-			print "Embedded:\n\"" + data + "\""
+			print "\nEmbedded:\n\t\"" + data + "\"\n"
 			output_file = open(self.file_op.file_name + ".out","w")
 			output_file.write(new_file)
 			output_file.close()
@@ -317,8 +320,8 @@ class PDF_stego:
 			output.fix()
 			output_fixed = PDF_file(self.file_op.file_name + ".out.fix")
 			output_fixed.compress()
-			print "Wrote compressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data, " + str(ind.__len__()) + " used in total)\n"
-			if self.debug:
+			print "\nWrote compressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data, " + str(ind.__len__()) + " used in total)\n"
+			if 0:#self.debug:
 				embd_file = open(self.file_op.file_name + ".out.fix")
 				embd_file.seek(0,0)
 				tjss = []
@@ -333,6 +336,7 @@ class PDF_stego:
 				print "======== TJ average after: " + str(n.avg(tjss)) + " ========"
 				print "======== TJ unsigned average after: " + str(n.avg(tjs)) + " ========"
 				embd_file.close()
+			if self.debug:
 				print "\n========== END EMBED ==========\n"
 			return [nums[1].__len__(),jitter]
 
@@ -368,7 +372,7 @@ class PDF_stego:
 		self.tj_count = 0
 		if self.debug:
 			print "\n========== BEGIN EXTRACT ==========\n"
-		print "Extracting with key \"" + derived_key + "\" from file \"" + self.file_op.file_name + "\"..."
+		print "\nExtracting with key \"" + derived_key + "\" from file \"" + self.file_op.file_name + "\"...\n"
 		# Only works for valid PDF files
 		self.file_op.uncompress()
 		embedding_file = open(self.file_op.file_name + '.qdf')
@@ -389,13 +393,26 @@ class PDF_stego:
 				tjs += self.extract_line(line,ch_two,jitter)
 		embedding_file.close()
 		if tjs.__len__() < 40 + length:
-			print "Error: not enough valid data to retrieve message: " + str(40 + length) + " > " + str(tjs.__len__())
+			print "\nError: not enough valid data to retrieve message: " + str(40 + length) + " > " + str(tjs.__len__()) + "\n"
+			if self.debug:
+				print "\n========== END EXTRACT ==========\n"
+			return -1
 		else:
-			checkstr = tjs[:20]
-			embedded = tjs[20:tjs.__len__() - 20]
+			k = 20
+			while k + 20 < tjs.__len__():
+				if nums == tjs[k:k+20]:
+					checkstr = tjs[k-length-20:k-length]
+					embedded = tjs[k-length:k]
+					if self.debug:
+						print "===== Start position found: " + str(k-length-20) + " ====="
+					k = tjs.__len__()
+				k += 1
+			if k != tjs.__len__() + 1:
+				print "\nError: ending code FlagStr not found\n"
+				return -1
+			# Decode embedded data
 			k = 0
 			emb_str = ""
-			# Decode embedded data
 			while k < length - 1:
 				emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
 				k += 2
@@ -405,18 +422,21 @@ class PDF_stego:
 				print_nums('Data',n.msg_to_nums(emb_str))
 			# Check integrity
 			if n.digest_to_nums(emb_str) != checkstr:
-				print "Error: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)"
+				print "\nError: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
 				if self.debug:
 					print "===== Raw data (corrupted) ====="
 					print emb_str
+					print "\n========== END EXTRACT ==========\n"
+				return -1
 			else:
-				print "Extracted:\n\"" + emb_str + "\""
+				print "\nExtracted:\n\t\"" + emb_str + "\"\n"
 				output_file = open(self.file_op.file_name + ".embd","w")
 				output_file.write(emb_str)
-				print "Wrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length) + " of them used for data)\n"
+				print "\nWrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length) + " of them used for data)\n"
 				output_file.close()
-		if self.debug:
-			print "\n========== END EXTRACT ==========\n"
+				if self.debug:
+					print "\n========== END EXTRACT ==========\n"
+				return 0
 
 #
 #
@@ -426,7 +446,7 @@ class PDF_stego:
 
 def print_nums(name, nums):
 	print '===== ' + name + ' (' + str(nums.__len__()) + ') ====='
-	print nums
+	print '\t' + str(nums)
 
 #
 #
@@ -460,9 +480,9 @@ def print_nums(name, nums):
 #print_nums('FlagStr',nums)
 
 # Running the embedding alogorithm
-ps = PDF_stego("test.pdf",True)
-l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit. Morbi venenatis lacus sed libero eleifend vitae posuere dui rutrum. Curabitur sed lorem neque, ut volutpat tellus. Nam imperdiet vulputate orci nec lobortis. Nunc sit amet libero nulla. Etiam venenatis enim eget orci consequat vel varius diam rhoncus. Cras non lorem ligula. Mauris lorem neque, sodales ac condimentum nec, iaculis sed diam. Aliquam mattis lacus felis, eu blandit tellus. Morbi eu mi quis odio vehicula vulputate et sit amet sapien. Maecenas consectetur blandit nulla eget tempor. Integer mollis porta massa, laoreet lobortis est condimentum et. Aliquam vulputate malesuada neque, at vulputate nisl iaculis vitae. Vestibulum at velit vitae quam lobortis laoreet quis mattis lorem. Aliquam eros mi, iaculis non semper quis, aliquam sit amet eros. Nulla mollis felis eu purus pretium ac ornare turpis bibendum. Sed magna nunc, convallis eget sagittis eget, congue eget dui. Suspendisse elementum vulputate nulla sit amet adipiscing. Praesent ut facilisis leo. Vivamus lobortis iaculis luctus. Sed et sapien nec urna porttitor ornare vel eu sapien. Integer ac felis et dolor accumsan condimentum nec quis nisi. Aliquam a tellus metus. Sed ultricies, dolor nec faucibus imperdiet, arcu risus egestas dolor, non faucibus arcu lacus eu odio. Nulla eu leo erat, vitae porta enim. Pellentesque sed tempor augue. Duis risus elit, pharetra vel sollicitudin nec, aliquet eget est. Suspendisse potenti. Vestibulum sit amet magna elit, quis sollicitudin sapien. Sed id felis pharetra nisi suscipit ultrices. Nunc ullamcorper suscipit nulla, ornare commodo elit sagittis a. Donec viverra mi vel felis varius pellentesque. Sed lectus mauris, interdum ac porttitor non, fermentum vitae velit. Donec porttitor varius elit, ut luctus mauris tincidunt a. Sed ullamcorper volutpat tempus. Curabitur sed risus ante, eu ultrices augue. Curabitur facilisis, dui quis condimentum condimentum, quam odio hendrerit mauris, at molestie sapien augue vel nisl. Curabitur convallis, lorem non vulputate ultricies, lorem ligula euismod ligula, eget blandit augue ipsum in purus. Nam condimentum odio quis mauris scelerisque euismod. Integer et metus nisl. Cras tempor est cursus justo faucibus dapibus pellentesque justo pulvinar.","abcdefgh")
-#if l[0] > 0:
+ps = PDF_stego("test.pdf",False)
+l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit.","abcdefgh")
+if l[0] > 0:
 	# Running the extracting alogorithm
-#	ps = PDF_stego("test.pdf.out.fix.pdf",True)
-#	ps.extract("abcdefgh",l[0],l[1])
+	ps = PDF_stego("test.pdf.out.fix.pdf",False)
+	ps.extract("abcdefgh",l[0],l[1])
