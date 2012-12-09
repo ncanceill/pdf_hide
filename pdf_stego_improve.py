@@ -85,11 +85,21 @@ class Numerals:
 	def encode_key(self,key):
 		return self.digest_to_nums(key)
 
-	def mean(self,nums):
+	def avg(self,nums):
 		n = 0
 		for k in nums:
 			n += k
 		return float(n) / nums.__len__()
+
+	def mean(self,nums,nums_):
+		if nums.__len__() < nums_.__len__():
+			return 0.
+		n = 0
+		i = 0
+		while i < nums_.__len__():
+			n += (nums[i] - nums_[i])
+			i += 1
+		return float(n) / nums_.__len__()
 
 # Generate chaotic maps
 class Chaotic:
@@ -143,7 +153,23 @@ class PDF_stego:
 				k = line.__len__()
 			else:
 				val = int(m.group(1))
-				if abs(val) < 16 and val != 0:
+				if abs(val) < 17 and val != 0:
+					tjs += [abs(val)]
+				k += m.end(1)
+		return tjs
+
+	def get_tjs_signed(self,line):
+		tjs = []
+		k = 0
+		while k < line.__len__():
+			# Parse TJ string from current position
+			m = re.search(r'[>)](\-?[0-9]+)[<(]',line[k:])
+			if m == None:
+				# No more TJ ops
+				k = line.__len__()
+			else:
+				val = int(m.group(1))
+				if abs(val) < 17 and val != 0:
 					tjs += [val]
 				k += m.end(1)
 		return tjs
@@ -167,7 +193,9 @@ class PDF_stego:
 			return [False,val]
 		if ch_two < self.redundancy or num == None:
 			# Use TJ op for a random value
-			return [False,int(15*ch_one)+1]
+			if val < 0:
+				return [False,-(int(15 * ch_one) + 1 )]
+			return [False,int(15 * ch_one) + 1]
 		# Use TJ op for data
 		if val < 0:
 			return [True, -num - 1]
@@ -233,13 +261,12 @@ class PDF_stego:
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m != None:
 				tjs += self.get_tjs(m.group(1))
-		jitter = int(n.mean(tjs) - n.mean(ind))
+		jitter = int(n.mean(tjs,ind))
 		ind = map(lambda x: (x + jitter) % 16,ind)
 		if self.debug:
 			print_nums('FlagStr1 (CheckStr)',nums[0])
 			print_nums('FlagStr2',nums[2])
 			print_nums('Data',n.msg_to_nums(data))
-			print_nums('Original TJs',tjs)
 			print "===== Jitter: " + str(jitter) + " =====\n"
 		# Initiate chaotic maps
 		ch_one = Chaotic(self.mu_one,nums[2])
@@ -259,6 +286,17 @@ class PDF_stego:
 				# Insert new block
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
+		if self.debug:
+			cover_file.seek(0,0)
+			tjss = []
+			# Parse file
+			for line in cover_file:
+				# Parse line for TJ blocks
+				m = re.search(r'\[(.*)\][ ]?TJ',line)
+				if m != None:
+					tjss += self.get_tjs_signed(m.group(1))
+			print_nums('TJ values before',tjss)
+			print "======== TJ average before: " + str(n.avg(tjss)) + " ========"
 		cover_file.close()
 		if i < ind.__len__():
 			print "Error: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed)."
@@ -274,8 +312,20 @@ class PDF_stego:
 			output.fix()
 			output_fixed = PDF_file(self.file_op.file_name + ".out.fix")
 			output_fixed.compress()
-			print "Wrote compressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data)\n"
+			print "Wrote compressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data, " + str(ind.__len__()) + " used in total)\n"
 			if self.debug:
+				embd_file = open(self.file_op.file_name + ".out.fix")
+				embd_file.seek(0,0)
+				tjss = []
+				# Parse file
+				for line in embd_file:
+					# Parse line for TJ blocks
+					m = re.search(r'\[(.*)\][ ]?TJ',line)
+					if m != None:
+						tjss += self.get_tjs_signed(m.group(1))
+				print_nums('TJ values after',tjss)
+				print "======== TJ average after: " + str(n.avg(tjss)) + " ========"
+				embd_file.close()
 				print "\n========== END EMBED ==========\n"
 			return [nums[1].__len__(),jitter]
 
@@ -368,7 +418,7 @@ class PDF_stego:
 #
 
 def print_nums(name, nums):
-	print '===== ' + name + ' ====='
+	print '===== ' + name + ' (' + str(nums.__len__()) + ') ====='
 	print nums
 
 #

@@ -144,7 +144,9 @@ class PDF_stego:
 			return [False,val]
 		if ch_two < self.redundancy or num == None:
 			# Use TJ op for a random value
-			return [False,int(15*ch_one)+1]
+			if val < 0:
+				return [False,-(int(15 * ch_one) + 1 )]
+			return [False,int(15 * ch_one) + 1]
 		# Use TJ op for data
 		if val < 0:
 			return [True, -num - 1]
