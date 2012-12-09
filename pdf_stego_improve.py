@@ -239,7 +239,8 @@ class PDF_stego:
 			print_nums('FlagStr1 (CheckStr)',nums[0])
 			print_nums('FlagStr2',nums[2])
 			print_nums('Data',n.msg_to_nums(data))
-			print "===== Jitter: " + str(jitter) + " ====="
+			print_nums('Original TJs',tjs)
+			print "===== Jitter: " + str(jitter) + " =====\n"
 		# Initiate chaotic maps
 		ch_one = Chaotic(self.mu_one,nums[2])
 		ch_two = Chaotic(self.mu_two,nums[2])
@@ -259,13 +260,13 @@ class PDF_stego:
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
 		cover_file.close()
-		print "Embedded:\n\"" + data + "\""
 		if i < ind.__len__():
-			print "Error: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed."
+			print "Error: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed)."
 			if self.debug:
 				print "\n========== END EMBED ==========\n"
 			return [0,0]
 		else:
+			print "Embedded:\n\"" + data + "\""
 			output_file = open(self.file_op.file_name + ".out","w")
 			output_file.write(new_file)
 			output_file.close()
@@ -404,7 +405,7 @@ def print_nums(name, nums):
 # Running the embedding alogorithm
 ps = PDF_stego("test.pdf",True)
 l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit.","abcdefgh")
-
-# Running the extracting alogorithm
-ps = PDF_stego("test.pdf.out.fix.pdf",True)
-ps.extract("abcdefgh",l[0],l[1])
+if l[0] > 0:
+	# Running the extracting alogorithm
+	ps = PDF_stego("test.pdf.out.fix.pdf",True)
+	ps.extract("abcdefgh",l[0],l[1])
