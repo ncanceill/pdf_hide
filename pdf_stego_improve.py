@@ -37,10 +37,13 @@ class Numerals:
 		if str.__len__() < 1:
 			return ""
 		else:
-			b = bin(ord(str[0]))[2:]
-			while b.__len__() < 8:
-				b = "0" + b
-			return b + self.str_to_binstr(str[1:])
+			result = ""
+			for c in str:
+				b = bin(ord(c))[2:]
+				while b.__len__() < 8:
+					b = "0" + b
+				result += b
+			return result
 
 	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a "015" numeral
 	def binstr_to_num(self,str):
@@ -187,10 +190,10 @@ class PDF_stego:
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
 	def embed_op(self,val,ch_one,ch_two,num):
-		self.tj_count += 1
 		if abs(val) > 16 or val == 0:
 			# Do not use TJ op
 			return [False,val]
+		self.tj_count += 1
 		if ch_two < self.redundancy or num == None:
 			# Use TJ op for a random value
 			if val < 0:
@@ -246,7 +249,7 @@ class PDF_stego:
 		self.tj_count = 0
 		if self.debug:
 			print "\n========== BEGIN EMBED ==========\n"
-		print "Embedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".uncomp.pdf\"..."
+		print "Embedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".qdf\"..."
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf")
 		new_file = ""
@@ -294,9 +297,11 @@ class PDF_stego:
 				# Parse line for TJ blocks
 				m = re.search(r'\[(.*)\][ ]?TJ',line)
 				if m != None:
+					tjs += self.get_tjs(m.group(1))
 					tjss += self.get_tjs_signed(m.group(1))
-			print_nums('TJ values before',tjss)
+			#print_nums('TJ values after',tjss)
 			print "======== TJ average before: " + str(n.avg(tjss)) + " ========"
+			print "======== TJ unsigned average before: " + str(n.avg(tjs)) + " ========"
 		cover_file.close()
 		if i < ind.__len__():
 			print "Error: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed)."
@@ -322,9 +327,11 @@ class PDF_stego:
 					# Parse line for TJ blocks
 					m = re.search(r'\[(.*)\][ ]?TJ',line)
 					if m != None:
+						tjs += self.get_tjs(m.group(1))
 						tjss += self.get_tjs_signed(m.group(1))
-				print_nums('TJ values after',tjss)
+				#print_nums('TJ values after',tjss)
 				print "======== TJ average after: " + str(n.avg(tjss)) + " ========"
+				print "======== TJ unsigned average after: " + str(n.avg(tjs)) + " ========"
 				embd_file.close()
 				print "\n========== END EMBED ==========\n"
 			return [nums[1].__len__(),jitter]
@@ -454,8 +461,8 @@ def print_nums(name, nums):
 
 # Running the embedding alogorithm
 ps = PDF_stego("test.pdf",True)
-l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit.","abcdefgh")
-if l[0] > 0:
+l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit. Morbi venenatis lacus sed libero eleifend vitae posuere dui rutrum. Curabitur sed lorem neque, ut volutpat tellus. Nam imperdiet vulputate orci nec lobortis. Nunc sit amet libero nulla. Etiam venenatis enim eget orci consequat vel varius diam rhoncus. Cras non lorem ligula. Mauris lorem neque, sodales ac condimentum nec, iaculis sed diam. Aliquam mattis lacus felis, eu blandit tellus. Morbi eu mi quis odio vehicula vulputate et sit amet sapien. Maecenas consectetur blandit nulla eget tempor. Integer mollis porta massa, laoreet lobortis est condimentum et. Aliquam vulputate malesuada neque, at vulputate nisl iaculis vitae. Vestibulum at velit vitae quam lobortis laoreet quis mattis lorem. Aliquam eros mi, iaculis non semper quis, aliquam sit amet eros. Nulla mollis felis eu purus pretium ac ornare turpis bibendum. Sed magna nunc, convallis eget sagittis eget, congue eget dui. Suspendisse elementum vulputate nulla sit amet adipiscing. Praesent ut facilisis leo. Vivamus lobortis iaculis luctus. Sed et sapien nec urna porttitor ornare vel eu sapien. Integer ac felis et dolor accumsan condimentum nec quis nisi. Aliquam a tellus metus. Sed ultricies, dolor nec faucibus imperdiet, arcu risus egestas dolor, non faucibus arcu lacus eu odio. Nulla eu leo erat, vitae porta enim. Pellentesque sed tempor augue. Duis risus elit, pharetra vel sollicitudin nec, aliquet eget est. Suspendisse potenti. Vestibulum sit amet magna elit, quis sollicitudin sapien. Sed id felis pharetra nisi suscipit ultrices. Nunc ullamcorper suscipit nulla, ornare commodo elit sagittis a. Donec viverra mi vel felis varius pellentesque. Sed lectus mauris, interdum ac porttitor non, fermentum vitae velit. Donec porttitor varius elit, ut luctus mauris tincidunt a. Sed ullamcorper volutpat tempus. Curabitur sed risus ante, eu ultrices augue. Curabitur facilisis, dui quis condimentum condimentum, quam odio hendrerit mauris, at molestie sapien augue vel nisl. Curabitur convallis, lorem non vulputate ultricies, lorem ligula euismod ligula, eget blandit augue ipsum in purus. Nam condimentum odio quis mauris scelerisque euismod. Integer et metus nisl. Cras tempor est cursus justo faucibus dapibus pellentesque justo pulvinar.","abcdefgh")
+#if l[0] > 0:
 	# Running the extracting alogorithm
-	ps = PDF_stego("test.pdf.out.fix.pdf",True)
-	ps.extract("abcdefgh",l[0],l[1])
+#	ps = PDF_stego("test.pdf.out.fix.pdf",True)
+#	ps.extract("abcdefgh",l[0],l[1])

@@ -138,10 +138,10 @@ class PDF_stego:
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
 	def embed_op(self,val,ch_one,ch_two,num):
-		self.tj_count += 1
 		if abs(val) > 16 or val == 0:
 			# Do not use TJ op
 			return [False,val]
+		self.tj_count += 1
 		if ch_two < self.redundancy or num == None:
 			# Use TJ op for a random value
 			if val < 0:
@@ -197,7 +197,7 @@ class PDF_stego:
 		self.tj_count = 0
 		if self.debug:
 			print "\n========== BEGIN EMBED ==========\n"
-		print "Embedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".uncomp.pdf\"..."
+		print "Embedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".qdf\"..."
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf")
 		new_file = ""
