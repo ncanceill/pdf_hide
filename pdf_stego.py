@@ -37,10 +37,13 @@ class Numerals:
 		if str.__len__() < 1:
 			return ""
 		else:
-			b = bin(ord(str[0]))[2:]
-			while b.__len__() < 8:
-				b = "0" + b
-			return b + self.str_to_binstr(str[1:])
+			result = ""
+			for c in str:
+				b = bin(ord(c))[2:]
+				while b.__len__() < 8:
+					b = "0" + b
+				result += b
+			return result
 
 	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a "015" numeral
 	def binstr_to_num(self,str):
