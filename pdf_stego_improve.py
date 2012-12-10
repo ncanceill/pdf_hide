@@ -189,11 +189,20 @@ class PDF_stego:
 	# If res[0] == True then num was embedded, move on to next numeral
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
-	def embed_op(self,val,ch_one,ch_two,num,start):
+	def embed_op(self,val,ch_one,ch_two,num,start,jitter):
 		if abs(val) > 16 or val == 0:
 			# Do not use TJ op
 			return [False,val]
 		self.tj_count += 1
+		if self.tj_count == 1:
+			# Embed jitter value
+			if jitter < 0:
+				if self.debug:
+					print "========= Embedding jitter as: " + str(jitter - 1) + " ========="
+				return [False, jitter - 1]
+			if self.debug:
+				print "========= Embedding jitter as: " + str(jitter + 1) + " ========="
+			return [False, jitter + 1]
 		if ch_two < self.redundancy or num == None or self.tj_count <= start:
 			# Use TJ op for a random value
 			if val < 0:
@@ -215,7 +224,7 @@ class PDF_stego:
 	# Returns a list res[]
 	# res[0] is the modified line
 	# res[1] is the new value of the IND index
-	def embed_line(self,line,ch_one,ch_two,ind,i,start):
+	def embed_line(self,line,ch_one,ch_two,ind,i,start,jitter):
 		newline = line
 		i_ = i
 		k = 0
@@ -229,10 +238,10 @@ class PDF_stego:
 				tj = int(m.group(1))
 				if i_ < ind.__len__():
 					# Try to embed numeral
-					op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_],start)
+					op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_],start,jitter)
 				else:
 					# No more numerals to embed
-					op = self.embed_op(tj,ch_one.next(),ch_two.next(),None,start)
+					op = self.embed_op(tj,ch_one.next(),ch_two.next(),None,start,jitter)
 				if op[0]:
 					# One numeral was embedded, update IND index
 					i_ += 1
@@ -264,6 +273,7 @@ class PDF_stego:
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m != None:
 				tjs += self.get_tjs(m.group(1))
+		# Jitter data
 		jitter = int(n.mean(tjs,ind))
 		ind = map(lambda x: (x + jitter) % 16,ind)
 		if self.debug:
@@ -288,7 +298,7 @@ class PDF_stego:
 				new_file += line
 			else:
 				# Try to embed data in TJ block
-				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start)
+				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,jitter)
 				# Insert new block
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
@@ -310,7 +320,7 @@ class PDF_stego:
 			print "\nError: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed).\n"
 			if self.debug:
 				print "\n========== END EMBED ==========\n"
-			return [0,0]
+			return 0
 		else:
 			print "\nEmbedded:\n\t\"" + data + "\"\n"
 			output_file = open(self.file_op.file_name + ".out","w")
@@ -338,17 +348,19 @@ class PDF_stego:
 				embd_file.close()
 			if self.debug:
 				print "\n========== END EMBED ==========\n"
-			return [nums[1].__len__(),jitter]
+			return nums[1].__len__()
 
 	def extract_op(self,val,ch_two):
-		self.tj_count += 1
 		if abs(val) > 16 or val == 0 or ch_two < self.redundancy:
 			# Do not use TJ op
 			return 0
+		self.tj_count += 1
+		if self.tj_count == 1:
+			return val
 		# Extract data from TJ op
 		return abs(val)
 
-	def extract_line(self,line,ch_two,jitter):
+	def extract_line(self,line,ch_two):
 		k = 0
 		tjs = []
 		while k < line.__len__():
@@ -362,13 +374,13 @@ class PDF_stego:
 				tj = self.extract_op(int(m.group(1)),ch_two.next())
 				if tj != 0:
 					# Get value
-					tjs += [(tj - jitter - 1) % 16]
+					tjs += [tj]
 				# Update current position
 				k += m.end(1)
 		return tjs
 
 	# Extracts data of known length from PDF file "<file>" using derived_key, outputs extracted data to "<file>.embd"
-	def extract(self,derived_key,length,jitter):
+	def extract(self,derived_key,length):
 		self.tj_count = 0
 		if self.debug:
 			print "\n========== BEGIN EXTRACT ==========\n"
@@ -390,7 +402,7 @@ class PDF_stego:
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m != None:
 				# Try to extract data from TJ block
-				tjs += self.extract_line(line,ch_two,jitter)
+				tjs += self.extract_line(line,ch_two)
 		embedding_file.close()
 		if tjs.__len__() < 40 + length:
 			print "\nError: not enough valid data to retrieve message: " + str(40 + length) + " > " + str(tjs.__len__()) + "\n"
@@ -398,13 +410,26 @@ class PDF_stego:
 				print "\n========== END EXTRACT ==========\n"
 			return -1
 		else:
+			# Extract jitter
+			if tjs[0] < 0:
+				jitter = tjs[0] + 1
+			else:
+				jitter = tjs[0] - 1
+			if self.debug:
+				print "===== Jitter found: " + str(jitter) + " (from TJ " + str(tjs[0]) + ") ====="
+			# Jitter data
+			tjs = map(lambda x: (x - jitter - 1) % 16, tjs)
+			# Extract data
 			k = 20
 			while k + 20 < tjs.__len__():
+				# Look for end position
 				if nums == tjs[k:k+20]:
-					checkstr = tjs[k-length-20:k-length]
-					embedded = tjs[k-length:k]
+					# Go back to start position according to length, and extract
+					start = k-length-20
+					checkstr = tjs[start:start + 20]
+					embedded = tjs[start + 20:k]
 					if self.debug:
-						print "===== Start position found: " + str(k-length-20) + " ====="
+						print "===== Start position found: " + str(start) + " ====="
 					k = tjs.__len__()
 				k += 1
 			if k != tjs.__len__() + 1:
@@ -419,7 +444,7 @@ class PDF_stego:
 			if self.debug:
 				print_nums('Data Checksum',n.encode_key(emb_str))
 				print_nums('CheckStr',checkstr)
-				print_nums('Data',n.msg_to_nums(emb_str))
+				print_nums('Data',embedded)
 			# Check integrity
 			if n.digest_to_nums(emb_str) != checkstr:
 				print "\nError: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
@@ -480,9 +505,9 @@ def print_nums(name, nums):
 #print_nums('FlagStr',nums)
 
 # Running the embedding alogorithm
-ps = PDF_stego("test.pdf",False)
+ps = PDF_stego("test.pdf",True)
 l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit.","abcdefgh")
-if l[0] > 0:
+if l > 0:
 	# Running the extracting alogorithm
-	ps = PDF_stego("test.pdf.out.fix.pdf",False)
-	ps.extract("abcdefgh",l[0],l[1])
+	ps = PDF_stego("test.pdf.out.fix.pdf",True)
+	ps.extract("abcdefgh",l)
