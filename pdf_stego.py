@@ -2,6 +2,7 @@
 import os
 import re
 import hashlib
+from optparse import OptionParser
 
 #
 #
@@ -344,38 +345,52 @@ def print_nums(name, nums):
 #
 #
 #
-# TESTS & EXAMPLES
+# SCRIPT
 #
 
-# Basic numeral-string-binary conversions
-#n = Numerals()
-#msg = "lorem ipsum"
-#nums = n.msg_to_nums(msg)
-#bin_ = n.str_to_binstr(msg)
-#print bin_
-#print n.split_len(bin_,4)
-#print nums
-#st = ""
-#k = 0
-#while k < nums.__len__() - 1:
-#	st += n.nums_to_ch(nums[k],nums[k + 1])
-#	k += 2
-#print st
+def main():
+	parser = OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0b")
+	parser.add_option("-f", "--file", dest="filename",
+					  help="use PDF file (may be compressed) FILENAME as input [default: \"test.pdf\"]", metavar="FILENAME")
+	parser.add_option("-k", "--key", dest="key",
+					  help="use KEY as the stego-key", metavar="KEY")
+	parser.add_option("-m", "--message", dest="msg",
+					  help="use MESSAGE as the data to embed (ignored if extracting)", metavar="MESSAGE")
+	parser.add_option("-l", "--message-length", dest="l",
+					  help="use LENGTH as the length of the data to extract (ignored if embedding)", metavar="LENGTH")
+	parser.add_option("-d", "--debug",
+					  action="store_true", dest="debug", default=False,
+					  help="print debug messages")
+	(options, args) = parser.parse_args()
+	if args.__len__() != 1:
+		parser.error("Please use command \"embed\" only or command \"extract\" only.")
+	if args[0] == "embed":
+		if options.filename == None:
+			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]")
+		if options.filename.__len__() == 0:
+			if options.debug:
+				print "No file name provided, using default: \"test.pdf\""
+			options.filename = "test.pdf"
+		if options.key == None:
+			options.key = raw_input("Please enter stego-key: ")
+		if options.msg == None:
+			options.msg = raw_input("Please enter the message to embed: ")
+		ps = PDF_stego(options.filename,options.debug)
+		l = ps.embed(options.msg,options.key)
+	elif args[0] == "extract":
+		if options.filename == None:
+			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]")
+		if options.filename.__len__() == 0:
+			if options.debug:
+				print "No file name provided, using default: \"test.pdf\""
+		if options.key == None:
+			options.key = raw_input("Please enter derived-key: ")
+		if options.l == None:
+			options.l = int(raw_input("Please enter data length: "))
+		ps = PDF_stego(options.filename,options.debug)
+		ps.extract(options.key,options.l)
+	else:
+		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 
-# Encoding message and key to numerals
-#nums = Numerals().encode_msg("lorem ipsum sin dolor amet","abcd1234")
-#print_nums('FlagStr1',nums[0])
-#print_nums('Message',nums[1])
-#print_nums('FlagStr2',nums[2])
-
-# Encoding derived key to numerals
-#nums = Numerals().encode_key("abcd1234")
-#print_nums('FlagStr',nums)
-
-# Running the embedding alogorithm
-ps = PDF_stego("test.pdf",False)
-l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nunc purus, semper sit amet semper id, cursus at velit.","abcdefgh")
-
-# Running the extracting alogorithm
-ps = PDF_stego("test.pdf.out.fix.pdf",False)
-ps.extract("abcdefgh",l)
+if __name__ == '__main__':
+    main()

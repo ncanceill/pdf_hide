@@ -2,6 +2,7 @@
 import os
 import re
 import hashlib
+from optparse import OptionParser
 
 #
 #
@@ -302,7 +303,8 @@ class PDF_stego:
 				# Insert new block
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
-		if 0:#self.debug:
+		tjss_ = []
+		if self.debug:
 			cover_file.seek(0,0)
 			tjss = []
 			# Parse file
@@ -312,9 +314,10 @@ class PDF_stego:
 				if m != None:
 					tjs += self.get_tjs(m.group(1))
 					tjss += self.get_tjs_signed(m.group(1))
-			#print_nums('TJ values after',tjss)
-			print "======== TJ average before: " + str(n.avg(tjss)) + " ========"
-			print "======== TJ unsigned average before: " + str(n.avg(tjs)) + " ========"
+			tjss_ = tjss
+			print_nums('TJ values before',tjss)
+			print "===== TJ average before: " + str(n.avg(tjss)) + " ====="
+			print "===== TJ unsigned average before: " + str(n.avg(tjs)) + " ====="
 		cover_file.close()
 		if i < ind.__len__():
 			print "\nError: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed).\n"
@@ -331,7 +334,7 @@ class PDF_stego:
 			output_fixed = PDF_file(self.file_op.file_name + ".out.fix")
 			output_fixed.compress()
 			print "\nWrote compressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data, " + str(ind.__len__()) + " used in total)\n"
-			if 0:#self.debug:
+			if self.debug:
 				embd_file = open(self.file_op.file_name + ".out.fix")
 				embd_file.seek(0,0)
 				tjss = []
@@ -342,9 +345,15 @@ class PDF_stego:
 					if m != None:
 						tjs += self.get_tjs(m.group(1))
 						tjss += self.get_tjs_signed(m.group(1))
-				#print_nums('TJ values after',tjss)
-				print "======== TJ average after: " + str(n.avg(tjss)) + " ========"
-				print "======== TJ unsigned average after: " + str(n.avg(tjs)) + " ========"
+				print_nums('TJ values after',tjss)
+				print "===== TJ average after: " + str(n.avg(tjss)) + " ====="
+				print "===== TJ unsigned average after: " + str(n.avg(tjs)) + " ====="
+				print "===== Sign bug ====="
+				i = 1
+				while i < tjss.__len__():
+					if tjss[i] * tjss_[i] < 0:
+						print "\t[" + str(i) + "]\t" + str(tjss_[i]) + "\t" + str(tjss[i])
+					i += 1
 				embd_file.close()
 			if self.debug:
 				print "\n========== END EMBED ==========\n"
@@ -476,38 +485,52 @@ def print_nums(name, nums):
 #
 #
 #
-# TESTS & EXAMPLES
+# SCRIPT
 #
 
-# Basic numeral-string-binary conversions
-#n = Numerals()
-#msg = "lorem ipsum"
-#nums = n.msg_to_nums(msg)
-#bin_ = n.str_to_binstr(msg)
-#print bin_
-#print n.split_len(bin_,4)
-#print nums
-#st = ""
-#k = 0
-#while k < nums.__len__() - 1:
-#	st += n.nums_to_ch(nums[k],nums[k + 1])
-#	k += 2
-#print st
+def main():
+	parser = OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0b")
+	parser.add_option("-f", "--file", dest="filename",
+					  help="use PDF file (may be compressed) FILENAME as input [default: \"test.pdf\"]", metavar="FILENAME")
+	parser.add_option("-k", "--key", dest="key",
+					  help="use KEY as the stego-key", metavar="KEY")
+	parser.add_option("-m", "--message", dest="msg",
+					  help="use MESSAGE as the data to embed (ignored if extracting)", metavar="MESSAGE")
+	parser.add_option("-l", "--message-length", dest="l",
+					  help="use LENGTH as the length of the data to extract (ignored if embedding)", metavar="LENGTH")
+	parser.add_option("-d", "--debug",
+					  action="store_true", dest="debug", default=False,
+					  help="print debug messages")
+	(options, args) = parser.parse_args()
+	if args.__len__() != 1:
+		parser.error("Please use command \"embed\" only or command \"extract\" only.")
+	if args[0] == "embed":
+		if options.filename == None:
+			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]")
+		if options.filename.__len__() == 0:
+			if options.debug:
+				print "No file name provided, using default: \"test.pdf\""
+			options.filename = "test.pdf"
+		if options.key == None:
+			options.key = raw_input("Please enter stego-key: ")
+		if options.msg == None:
+			options.msg = raw_input("Please enter the message to embed: ")
+		ps = PDF_stego(options.filename,options.debug)
+		l = ps.embed(options.msg,options.key)
+	elif args[0] == "extract":
+		if options.filename == None:
+			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]")
+		if options.filename.__len__() == 0:
+			if options.debug:
+				print "No file name provided, using default: \"test.pdf\""
+		if options.key == None:
+			options.key = raw_input("Please enter derived-key: ")
+		if options.l == None:
+			options.l = int(raw_input("Please enter data length: "))
+		ps = PDF_stego(options.filename,options.debug)
+		ps.extract(options.key,options.l)
+	else:
+		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 
-# Encoding message and key to numerals
-#nums = Numerals().encode_msg("lorem ipsum sin dolor amet","abcd1234")
-#print_nums('FlagStr1',nums[0])
-#print_nums('Message',nums[1])
-#print_nums('FlagStr2',nums[2])
-
-# Encoding derived key to numerals
-#nums = Numerals().encode_key("abcd1234")
-#print_nums('FlagStr',nums)
-
-# Running the embedding alogorithm
-ps = PDF_stego("test.pdf",True)
-l = ps.embed("Lorem ipsum dolor sit amet, consectetur adipiscing elit.","abcdefgh")
-if l > 0:
-	# Running the extracting alogorithm
-	ps = PDF_stego("test.pdf.out.fix.pdf",True)
-	ps.extract("abcdefgh",l)
+if __name__ == '__main__':
+    main()
