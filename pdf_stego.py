@@ -366,29 +366,30 @@ def main():
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 	if args[0] == "embed":
 		if options.filename == None:
-			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]")
+			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]\n")
 		if options.filename.__len__() == 0:
 			if options.debug:
 				print "No file name provided, using default: \"test.pdf\""
 			options.filename = "test.pdf"
 		if options.key == None:
-			options.key = raw_input("Please enter stego-key: ")
+			options.key = raw_input("Please enter stego-key:\n")
 		if options.msg == None:
-			options.msg = raw_input("Please enter the message to embed: ")
+			options.msg = raw_input("Please enter the message to embed:\n")
 		ps = PDF_stego(options.filename,options.debug)
 		l = ps.embed(options.msg,options.key)
 	elif args[0] == "extract":
 		if options.filename == None:
-			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]")
+			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]\n")
 		if options.filename.__len__() == 0:
 			if options.debug:
 				print "No file name provided, using default: \"test.pdf\""
+			options.filename = "test.pdf"
 		if options.key == None:
-			options.key = raw_input("Please enter derived-key: ")
+			options.key = raw_input("Please enter derived-key:\n")
 		if options.l == None:
-			options.l = int(raw_input("Please enter data length: "))
+			options.l = raw_input("Please enter data length:\n")
 		ps = PDF_stego(options.filename,options.debug)
-		ps.extract(options.key,options.l)
+		ps.extract(options.key,int(options.l))
 	else:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 
