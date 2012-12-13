@@ -12,6 +12,7 @@ import optparse
 
 # Handle PDF files
 class PDF_file:
+
 	file_name = ''
 
 	def __init__(self,file_name):
@@ -31,7 +32,12 @@ class PDF_file:
 
 # Handle 015 and 116 numeral integers, and binary strings, and other stuff
 class Numerals:
-	#nbits = 4
+
+	# The number of bit to use
+	n = 4
+
+	def __init__(self,nbits):
+		self.n = nbits
 
 	# Encodes a string into a binary string based on the ASCII codes (e.g. "a" returns "01100001")
 	def str_to_binstr(self,str):
@@ -46,17 +52,17 @@ class Numerals:
 				result += b
 			return result
 
-	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a "015" numeral
+	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4) into a numeral (a "015" numeral if n is 4)
 	def binstr_to_num(self,str):
-		return int(str,2) % 16
+		return int(str,2) % (2**self.n)
 
-	# Encodes an ASCII code (passed-in as an hexadecimal string) into a "015" numeral using mod(16)
+	# Encodes an ASCII code (passed-in as an hexadecimal string) into a numeral using mod(2^n)
 	def hexstr_to_num(self,h):
-		return int(h,16) % 16
+		return int(h,16) % (2**self.n)
 
 	# Decodes a character from two "015" numerals according to the algo
 	def nums_to_ch(self,i,j):
-		return chr(16 * i + j)
+		return chr(16 * i + j) #TODO: adapt
 
 	# Splits a sequence into a list of sequences of specified length (the last one may be shorter)
 	def split_len(self,seq,length):
@@ -66,26 +72,26 @@ class Numerals:
 	def digest(self,str):
 		return hashlib.sha1(str).hexdigest()
 
-	# Encodes a 20-byte SHA1 digest to a list of 20 "015" numerals array according to the algo
+	# Encodes a 20-byte SHA1 digest to a list of 20 numerals array according to the algo
 	def digest_to_nums(self,d):
 		return map(self.hexstr_to_num,self.split_len(self.digest(d),2))
 
-	# Encodes a message to a list of "015" numerals according to the algo
+	# Encodes a message to a list of numerals according to the algo
 	def msg_to_nums(self,msg):
 		return map(self.binstr_to_num,self.split_len(self.str_to_binstr(msg),4))
 
 	# Encodes a message and a stego key according to the algo
 	#
 	# Returns a list n[]:
-	# n[0] is the list of 20 "015" numerals representing "FlagStr1"
-	# n[1] is the list of "015" numerals representing the message
-	# n[2] is the list of 20 "015" numerals representing "FlagStr2"
+	# n[0] is the list of 20 numerals representing "FlagStr1"
+	# n[1] is the list of numerals representing the message
+	# n[2] is the list of 20 numerals representing "FlagStr2"
 	def encode_msg(self,msg,key):
 		return [self.digest_to_nums(msg),self.msg_to_nums(msg),self.digest_to_nums(key)]
 
 	# Encodes a derived key according to the algo
 	#
-	# Returns the list of 20 "015" numerals representing "FlagStr"
+	# Returns the list of 20 numerals representing "FlagStr"
 	def encode_key(self,key):
 		return self.digest_to_nums(key)
 
@@ -107,6 +113,7 @@ class Numerals:
 
 # Generate chaotic maps
 class Chaotic:
+
 	mu = 3.6
 	x = 0
 
@@ -129,6 +136,10 @@ class Chaotic:
 
 # Perform the stego algorithm
 class PDF_stego:
+
+	# The number of bit to use
+	nbits = 4
+	
 	# Debug logging flag
 	debug = False
 
@@ -145,11 +156,12 @@ class PDF_stego:
 	# Counter for TJ operators
 	tj_count = 0
 
-	def __init__(self,input,debug,improve,red):
+	def __init__(self,input,debug,improve,red,nbits):
 		self.file_op = PDF_file(input)
 		self.improve = improve
 		self.debug = debug
 		self.redundancy = red
+		self.nbits = nbits
 
 	def get_tjs(self,line):
 		tjs = []
@@ -162,7 +174,7 @@ class PDF_stego:
 				k = line.__len__()
 			else:
 				val = int(m.group(1))
-				if abs(val) < 17 and val != 0:
+				if abs(val) < 2**self.nbits + 1 and val != 0:
 					tjs += [abs(val)]
 				k += m.end(1)
 		return tjs
@@ -178,11 +190,10 @@ class PDF_stego:
 				k = line.__len__()
 			else:
 				val = int(m.group(1))
-				if abs(val) < 17 and val != 0:
+				if abs(val) < 2**self.nbits + 1 and val != 0:
 					tjs += [val]
 				k += m.end(1)
 		return tjs
-
 
 	# Embeds data in a TJ operator
 	#
@@ -196,7 +207,7 @@ class PDF_stego:
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
 	def embed_op(self,val,ch_one,ch_two,num,start,jitter):
-		if abs(val) > 16 or val == 0:
+		if abs(val) > 2**self.nbits or val == 0:
 			# Do not use TJ op
 			return [False,val]
 		self.tj_count += 1
@@ -212,8 +223,8 @@ class PDF_stego:
 		if ch_two < self.redundancy or num == None or self.tj_count <= start:
 			# Use TJ op for a random value
 			if val < 0:
-				return [False,-(int(15 * ch_one) + 1 )]
-			return [False,int(15 * ch_one) + 1]
+				return [False,-(int((2**self.nbits - 1) * ch_one) + 1 )]
+			return [False,int((2**self.nbits - 1) * ch_one) + 1]
 		# Use TJ op for data
 		if val < 0:
 			return [True, -num - 1]
@@ -259,7 +270,7 @@ class PDF_stego:
 
 	# Embeds data with passkey in a PDF file "<file>", outputs stego PDF file "<file>.out.fix.pdf"
 	#
-	# Returns the number of embedded "015" numbers constituting the data
+	# Returns the number of embedded numerals constituting the data
 	def embed(self,data,passkey):
 		self.tj_count = 0
 		if self.debug:
@@ -268,7 +279,7 @@ class PDF_stego:
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf")
 		new_file = ""
-		n = Numerals()
+		n = Numerals(self.nbits)
 		# Get the numerals to embed from the key and the message
 		nums = n.encode_msg(data,passkey)
 		ind = nums[0] + nums[1] + nums[2]
@@ -282,7 +293,7 @@ class PDF_stego:
 					tjs += self.get_tjs(m.group(1))
 			# Jitter data
 			jitter = int(n.mean(tjs,ind))
-			ind = map(lambda x: (x + jitter) % 16,ind)
+			ind = map(lambda x: (x + jitter) % (2**self.nbits),ind)
 		else:
 			jitter = 0
 		if self.debug:
@@ -371,7 +382,7 @@ class PDF_stego:
 			return nums[1].__len__()
 
 	def extract_op(self,val,ch_two):
-		if abs(val) > 16 or val == 0 or ch_two < self.redundancy:
+		if abs(val) > 2**self.nbits or val == 0 or ch_two < self.redundancy:
 			# Do not use TJ op
 			return 0
 		self.tj_count += 1
@@ -409,7 +420,7 @@ class PDF_stego:
 		# Only works for valid PDF files
 		self.file_op.uncompress()
 		embedding_file = open(self.file_op.file_name + '.qdf')
-		n = Numerals()
+		n = Numerals(self.nbits)
 		# Get the numerals from the key
 		nums = n.encode_key(derived_key)
 		if self.debug:
@@ -442,7 +453,7 @@ class PDF_stego:
 			else:
 				jitter = 0
 			# Jitter data
-			tjs = map(lambda x: (x - jitter - 1) % 16, tjs)
+			tjs = map(lambda x: (x - jitter - 1) % (2**self.nbits), tjs)
 			# Extract data
 			k = 20
 			while k + 20 < tjs.__len__():
@@ -472,7 +483,7 @@ class PDF_stego:
 				k = 0
 				emb_str = ""
 				while k < length_ - 1:
-					emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
+					emb_str += n.nums_to_ch(embedded[k],embedded[k + 1]) # TODO: adapt
 					k += 2
 				if self.debug:
 					print_nums('Data Checksum',n.encode_key(emb_str))
@@ -524,17 +535,19 @@ def main():
 	group0.add_option("-m", "--message", dest="msg",
 					  help="use MESSAGE as the data to embed (ignored if extracting)", metavar="MESSAGE")
 	group1.add_option("-i", "--improve", action="store_true", dest="improve", default=False,
-					  help="use algo improvements")
+					  help="use algo improvements [%default]")
 	group1.add_option("-l", "--message-length", dest="l", action="store", type="int", default=0,
 					  help="use LENGTH as the length of the data to extract (ignored if embedding or if using original algo)", metavar="LENGTH")
 	group2.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
-					  help="print debug messages")
+					  help="print debug messages [%default]")
+	group2.add_option("-n", "--nbits", dest="nbits", action="store", type="int", default=4,
+					  help="use NBITS as the number of bits to use for numerals [%default]", metavar="NBITS")
 	group2.add_option("-r", "--redundancy", dest="red", action="store", type="float", default=0.1,
-					  help="use RED as the redundancy parameter (strictly between 0 and 1, default is 0.1)", metavar="RED")
+					  help="use RED as the redundancy parameter (strictly between 0 and 1) [%default]", metavar="RED")
 	parser.add_option_group(group0)
 	parser.add_option_group(group1)
 	parser.add_option_group(group2)
-	(args, opts) = parser.parse_args()
+	(options, args) = parser.parse_args()
 	if args.__len__() != 1:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 	if args[0] == "embed":
@@ -550,8 +563,8 @@ def main():
 			options.msg = raw_input("Please enter the message to embed:\n")
 		if options.red == None:
 			options.red = "0.1"
-		ps = PDF_stego(options.filename,options.debug,options.improve,options.red)
-		l = ps.embed(options.msg,options.key)
+		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits)
+		exit(ps.embed(options.msg,options.key))
 	elif args[0] == "extract":
 		if options.filename == None:
 			options.filename = raw_input("Please enter input file name: [\"test.pdf.out.fix.pdf\"]\n")
@@ -563,8 +576,8 @@ def main():
 			options.key = raw_input("Please enter derived-key:\n")
 		if options.l == None:
 			options.l = int(raw_input("Please enter data length:\n"))
-		ps = PDF_stego(options.filename,options.debug,options.improve)
-		ps.extract(options.key,options.l)
+		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits)
+		exit(ps.extract(options.key,options.l))
 	else:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 
