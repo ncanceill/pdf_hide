@@ -2,7 +2,7 @@
 import os
 import re
 import hashlib
-from optparse import OptionParser
+import optparse
 
 #
 #
@@ -145,10 +145,11 @@ class PDF_stego:
 	# Counter for TJ operators
 	tj_count = 0
 
-	def __init__(self,input,debug,improve):
+	def __init__(self,input,debug,improve,red):
 		self.file_op = PDF_file(input)
 		self.improve = improve
 		self.debug = debug
+		self.redundancy = red
 
 	def get_tjs(self,line):
 		tjs = []
@@ -512,22 +513,28 @@ def print_nums(name, nums):
 #
 
 def main():
-	parser = OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0b")
-	parser.add_option("-f", "--file", dest="filename",
+	parser = optparse.OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0b")
+	group0 = optparse.OptionGroup(parser, 'General options')
+	group1 = optparse.OptionGroup(parser, 'Basic options for improvements')
+	group2 = optparse.OptionGroup(parser, 'Advanced options')
+	group0.add_option("-f", "--file", dest="filename",
 					  help="use PDF file (may be compressed) FILENAME as input", metavar="FILENAME")
-	parser.add_option("-k", "--key", dest="key",
+	group0.add_option("-k", "--key", dest="key",
 					  help="use KEY as the stego-key", metavar="KEY")
-	parser.add_option("-m", "--message", dest="msg",
+	group0.add_option("-m", "--message", dest="msg",
 					  help="use MESSAGE as the data to embed (ignored if extracting)", metavar="MESSAGE")
-	parser.add_option("-l", "--message-length", dest="l",
-					  help="use LENGTH as the length of the data to extract (ignored if embedding)", metavar="LENGTH")
-	parser.add_option("-i", "--improve",
-					  action="store_true", dest="improve", default=False,
+	group1.add_option("-i", "--improve", action="store_true", dest="improve", default=False,
 					  help="use algo improvements")
-	parser.add_option("-d", "--debug",
-					  action="store_true", dest="debug", default=False,
+	group1.add_option("-l", "--message-length", dest="l", action="store", type="int", default=0,
+					  help="use LENGTH as the length of the data to extract (ignored if embedding or if using original algo)", metavar="LENGTH")
+	group2.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
 					  help="print debug messages")
-	(options, args) = parser.parse_args()
+	group2.add_option("-r", "--redundancy", dest="red", action="store", type="float", default=0.1,
+					  help="use RED as the redundancy parameter (strictly between 0 and 1, default is 0.1)", metavar="RED")
+	parser.add_option_group(group0)
+	parser.add_option_group(group1)
+	parser.add_option_group(group2)
+	(args, opts) = parser.parse_args()
 	if args.__len__() != 1:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 	if args[0] == "embed":
@@ -541,7 +548,9 @@ def main():
 			options.key = raw_input("Please enter stego-key:\n")
 		if options.msg == None:
 			options.msg = raw_input("Please enter the message to embed:\n")
-		ps = PDF_stego(options.filename,options.debug,options.improve)
+		if options.red == None:
+			options.red = "0.1"
+		ps = PDF_stego(options.filename,options.debug,options.improve,options.red)
 		l = ps.embed(options.msg,options.key)
 	elif args[0] == "extract":
 		if options.filename == None:
@@ -552,12 +561,10 @@ def main():
 			options.filename = "test.pdf.out.fix.pdf"
 		if options.key == None:
 			options.key = raw_input("Please enter derived-key:\n")
-		if not options.improve:
-			options.l = "0"
 		if options.l == None:
-			options.l = raw_input("Please enter data length:\n")
+			options.l = int(raw_input("Please enter data length:\n"))
 		ps = PDF_stego(options.filename,options.debug,options.improve)
-		ps.extract(options.key,int(options.l))
+		ps.extract(options.key,options.l)
 	else:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 
