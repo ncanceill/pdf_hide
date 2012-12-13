@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import os
+import sys
 import re
+import select
 import hashlib
 import optparse
 
@@ -39,6 +41,14 @@ class Numerals:
 	def __init__(self,nbits):
 		self.n = nbits
 
+	def pad_binstr(self,b,nbits):
+		while b.__len__() < nbits:
+			b = "0" + b
+		return b
+
+	def num_to_binstr(self,num,nbits):
+		return self.pad_binstr(bin(num)[2:],nbits)
+
 	# Encodes a string into a binary string based on the ASCII codes (e.g. "a" returns "01100001")
 	def str_to_binstr(self,str):
 		if str.__len__() < 1:
@@ -46,23 +56,20 @@ class Numerals:
 		else:
 			result = ""
 			for c in str:
-				b = bin(ord(c))[2:]
-				while b.__len__() < 8:
-					b = "0" + b
-				result += b
+				result += self.num_to_binstr(ord(c),8)
 			return result
 
-	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4) into a numeral (a "015" numeral if n is 4)
-	def binstr_to_num(self,str):
-		return int(str,2) % (2**self.n)
+	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a character
+	def binstr_to_ch(self,str):
+		return chr(int(str,2) % 256)
 
 	# Encodes an ASCII code (passed-in as an hexadecimal string) into a numeral using mod(2^n)
 	def hexstr_to_num(self,h):
 		return int(h,16) % (2**self.n)
 
-	# Decodes a character from two "015" numerals according to the algo
-	def nums_to_ch(self,i,j):
-		return chr(16 * i + j) #TODO: adapt
+	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4) into a numeral (a "015" numeral if n is 4)
+	def binstr_to_num(self,str):
+		return int(str,2) % (2**self.n)
 
 	# Splits a sequence into a list of sequences of specified length (the last one may be shorter)
 	def split_len(self,seq,length):
@@ -78,7 +85,7 @@ class Numerals:
 
 	# Encodes a message to a list of numerals according to the algo
 	def msg_to_nums(self,msg):
-		return map(self.binstr_to_num,self.split_len(self.str_to_binstr(msg),4))
+		return map(self.binstr_to_num,[self.pad_binstr(bin,self.n) for bin in self.split_len(self.str_to_binstr(msg),self.n)])
 
 	# Encodes a message and a stego key according to the algo
 	#
@@ -481,10 +488,25 @@ class PDF_stego:
 			else:
 				# Decode embedded data
 				k = 0
+				bin_str = ""
+				while k < embedded.__len__():
+					bin = n.num_to_binstr(embedded[k],self.nbits)
+					if k == embedded.__len__() - 1:
+						missing = -(bin_str.__len__() % 8) % 8
+						if missing > self.nbits:
+							print "\nError: ...\n" #TODO: message
+							if self.debug:
+								print_nums("Raw data (corrupted)",embedded)
+								print "\n========== END EXTRACT ==========\n"
+							return -1
+						bin_str += bin[bin.__len__() - missing:]
+					else:
+						bin_str += bin
+					k += 1
+				emb_chars = map(n.binstr_to_ch,n.split_len(bin_str,8))
 				emb_str = ""
-				while k < length_ - 1:
-					emb_str += n.nums_to_ch(embedded[k],embedded[k + 1]) # TODO: adapt
-					k += 2
+				for ch in emb_chars:
+					emb_str += ch
 				if self.debug:
 					print_nums('Data Checksum',n.encode_key(emb_str))
 					print_nums('CheckStr',checkstr)
@@ -494,14 +516,14 @@ class PDF_stego:
 					print "\nError: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
 					if self.debug:
 						print "===== Raw data (corrupted) ====="
-						print emb_str
+						print "\t\"" + emb_str + "\""
 						print "\n========== END EXTRACT ==========\n"
 					return -1
 				else:
 					print "\nExtracted:\n\t\"" + emb_str + "\"\n"
 					output_file = open(self.file_op.file_name + ".embd","w")
 					output_file.write(emb_str)
-					print "\nWrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length) + " of them used for data)\n"
+					print "\nWrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length_) + " of them used for data)\n"
 					output_file.close()
 					if self.debug:
 						print "\n========== END EXTRACT ==========\n"
@@ -551,6 +573,16 @@ def main():
 	if args.__len__() != 1:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 	if args[0] == "embed":
+		if select.select([sys.stdin,],[],[],0.0)[0]:
+			input = ""
+			for line in sys.stdin:
+				if input.__len__() > 0:
+					input += "\n"
+				input += line
+			sys.stdin = open("/dev/tty")
+			options.msg = input
+		if options.msg == None:
+			options.msg = raw_input("Please enter the message to embed:\n")
 		if options.filename == None:
 			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]\n")
 		if options.filename.__len__() == 0:
@@ -559,8 +591,6 @@ def main():
 			options.filename = "test.pdf"
 		if options.key == None:
 			options.key = raw_input("Please enter stego-key:\n")
-		if options.msg == None:
-			options.msg = raw_input("Please enter the message to embed:\n")
 		if options.red == None:
 			options.red = "0.1"
 		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits)
