@@ -404,6 +404,7 @@ class PDF_stego:
 		if self.debug:
 			print "\n========== BEGIN EXTRACT ==========\n"
 		print "\nExtracting with key \"" + derived_key + "\" from file \"" + self.file_op.file_name + "\"...\n"
+		length_ = length
 		# Only works for valid PDF files
 		self.file_op.uncompress()
 		embedding_file = open(self.file_op.file_name + '.qdf')
@@ -423,19 +424,22 @@ class PDF_stego:
 				# Try to extract data from TJ block
 				tjs += self.extract_line(line,ch_two)
 		embedding_file.close()
-		if tjs.__len__() < 40 + length:
+		if self.improve and tjs.__len__() < 40 + length:
 			print "\nError: not enough valid data to retrieve message: " + str(40 + length) + " > " + str(tjs.__len__()) + "\n"
 			if self.debug:
 				print "\n========== END EXTRACT ==========\n"
 			return -1
 		else:
-			# Extract jitter
-			if tjs[0] < 0:
-				jitter = tjs[0] + 1
+			if self.improve:
+				# Extract jitter
+				if tjs[0] < 0:
+					jitter = tjs[0] + 1
+				else:
+					jitter = tjs[0] - 1
+				if self.debug:
+					print "===== Jitter found: " + str(jitter) + " (from TJ " + str(tjs[0]) + ") ====="
 			else:
-				jitter = tjs[0] - 1
-			if self.debug:
-				print "===== Jitter found: " + str(jitter) + " (from TJ " + str(tjs[0]) + ") ====="
+				jitter = 0
 			# Jitter data
 			tjs = map(lambda x: (x - jitter - 1) % 16, tjs)
 			# Extract data
@@ -443,44 +447,53 @@ class PDF_stego:
 			while k + 20 < tjs.__len__():
 				# Look for end position
 				if nums == tjs[k:k+20]:
-					# Go back to start position according to length, and extract
-					start = k-length-20
+					if self.debug:
+						print "===== End position found: " + str(k + 20 - 1) + " ====="
+					if self.improve:
+						# Go back to start position according to length, and extract
+						start = k-length-20
+						if self.debug:
+							print "===== Start position found: " + str(start) + " ====="
+					else:
+						start = 0
+						length_ = k - 20
 					checkstr = tjs[start:start + 20]
 					embedded = tjs[start + 20:k]
-					if self.debug:
-						print "===== Start position found: " + str(start) + " ====="
 					k = tjs.__len__()
 				k += 1
 			if k != tjs.__len__() + 1:
 				print "\nError: ending code FlagStr not found\n"
-				return -1
-			# Decode embedded data
-			k = 0
-			emb_str = ""
-			while k < length - 1:
-				emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
-				k += 2
-			if self.debug:
-				print_nums('Data Checksum',n.encode_key(emb_str))
-				print_nums('CheckStr',checkstr)
-				print_nums('Data',embedded)
-			# Check integrity
-			if n.digest_to_nums(emb_str) != checkstr:
-				print "\nError: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
 				if self.debug:
-					print "===== Raw data (corrupted) ====="
-					print emb_str
 					print "\n========== END EXTRACT ==========\n"
 				return -1
 			else:
-				print "\nExtracted:\n\t\"" + emb_str + "\"\n"
-				output_file = open(self.file_op.file_name + ".embd","w")
-				output_file.write(emb_str)
-				print "\nWrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length) + " of them used for data)\n"
-				output_file.close()
+				# Decode embedded data
+				k = 0
+				emb_str = ""
+				while k < length_ - 1:
+					emb_str += n.nums_to_ch(embedded[k],embedded[k + 1])
+					k += 2
 				if self.debug:
-					print "\n========== END EXTRACT ==========\n"
-				return 0
+					print_nums('Data Checksum',n.encode_key(emb_str))
+					print_nums('CheckStr',checkstr)
+					print_nums('Data',embedded)
+				# Check integrity
+				if n.digest_to_nums(emb_str) != checkstr:
+					print "\nError: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
+					if self.debug:
+						print "===== Raw data (corrupted) ====="
+						print emb_str
+						print "\n========== END EXTRACT ==========\n"
+					return -1
+				else:
+					print "\nExtracted:\n\t\"" + emb_str + "\"\n"
+					output_file = open(self.file_op.file_name + ".embd","w")
+					output_file.write(emb_str)
+					print "\nWrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length) + " of them used for data)\n"
+					output_file.close()
+					if self.debug:
+						print "\n========== END EXTRACT ==========\n"
+					return 0
 
 #
 #
@@ -501,7 +514,7 @@ def print_nums(name, nums):
 def main():
 	parser = OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0b")
 	parser.add_option("-f", "--file", dest="filename",
-					  help="use PDF file (may be compressed) FILENAME as input [default: \"test.pdf\"]", metavar="FILENAME")
+					  help="use PDF file (may be compressed) FILENAME as input", metavar="FILENAME")
 	parser.add_option("-k", "--key", dest="key",
 					  help="use KEY as the stego-key", metavar="KEY")
 	parser.add_option("-m", "--message", dest="msg",
@@ -532,13 +545,15 @@ def main():
 		l = ps.embed(options.msg,options.key)
 	elif args[0] == "extract":
 		if options.filename == None:
-			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]\n")
+			options.filename = raw_input("Please enter input file name: [\"test.pdf.out.fix.pdf\"]\n")
 		if options.filename.__len__() == 0:
 			if options.debug:
-				print "No file name provided, using default: \"test.pdf\""
-			options.filename = "test.pdf"
+				print "No file name provided, using default: \"test.pdf.out.fix.pdf\""
+			options.filename = "test.pdf.out.fix.pdf"
 		if options.key == None:
 			options.key = raw_input("Please enter derived-key:\n")
+		if not options.improve:
+			options.l = "0"
 		if options.l == None:
 			options.l = raw_input("Please enter data length:\n")
 		ps = PDF_stego(options.filename,options.debug,options.improve)
