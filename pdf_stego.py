@@ -221,11 +221,9 @@ class PDF_stego:
 		if self.improve and self.tj_count == 1:
 			# Embed jitter value
 			if jitter < 0:
-				if self.debug:
-					print "========= Embedding jitter as: " + str(jitter - 1) + " ========="
+				self.print_debug('Embedded jitter',jitter - 1)
 				return [False, jitter - 1]
-			if self.debug:
-				print "========= Embedding jitter as: " + str(jitter + 1) + " ========="
+			self.print_debug('Embedded jitter',jitter + 1)
 			return [False, jitter + 1]
 		if ch_two < self.redundancy or num == None or self.tj_count <= start:
 			# Use TJ op for a random value
@@ -280,9 +278,9 @@ class PDF_stego:
 	# Returns the number of embedded numerals constituting the data
 	def embed(self,data,passkey):
 		self.tj_count = 0
-		if self.debug:
-			print "\n========== BEGIN EMBED ==========\n"
-		print "\nEmbedding with key \"" + passkey + "\" in file \"" + self.file_op.file_name + ".qdf\"...\n"
+		self.print_info("Key","\"" + passkey + "\"")
+		self.print_info("Input file","\"" + self.file_op.file_name + ".qdf\"")
+		self.print_info("Embedding data, please wait...","")
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf")
 		new_file = ""
@@ -303,19 +301,17 @@ class PDF_stego:
 			ind = map(lambda x: (x + jitter) % (2**self.nbits),ind)
 		else:
 			jitter = 0
-		if self.debug:
-			print_nums('FlagStr1 (CheckStr)',nums[0])
-			print_nums('FlagStr2',nums[2])
-			print_nums('Data',n.msg_to_nums(data))
-			print "===== Jitter: " + str(jitter) + " ====="
+		self.print_debug('FlagStr1 (CheckStr)',nums[0])
+		self.print_debug('FlagStr2',nums[2])
+		self.print_debug('Data',n.msg_to_nums(data))
+		self.print_debug('Jitter',jitter)
 		# Initiate chaotic maps
 		ch_one = Chaotic(self.mu_one,nums[2])
 		ch_two = Chaotic(self.mu_two,nums[2])
 		# Parse file
 		if self.improve:
 			start = int((tjs.__len__() - ind.__len__()) * ch_one.next())
-			if self.debug:
-				print "===== Random start position: " + str(start) + " ====="
+			self.print_debug("Random start position",start)
 		else:
 			start = 0
 		i = 0
@@ -333,7 +329,7 @@ class PDF_stego:
 				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
 				i = newline[1]
 		tjss_ = []
-		if self.improve and self.debug:
+		if self.debug:
 			cover_file.seek(0,0)
 			tjss = []
 			# Parse file
@@ -344,17 +340,16 @@ class PDF_stego:
 					tjs += self.get_tjs(m.group(1))
 					tjss += self.get_tjs_signed(m.group(1))
 			tjss_ = tjss
-			print_nums('TJ values before',tjss)
-			print "===== TJ average before: " + str(n.avg(tjss)) + " ====="
-			print "===== TJ unsigned average before: " + str(n.avg(tjs)) + " ====="
+			if self.improve:
+				self.print_debug('TJ values before',tjss)
+				self.print_debug("TJ average before",n.avg(tjss))
+				self.print_debug("TJ unsigned average before",n.avg(tjs))
 		cover_file.close()
 		if i < ind.__len__():
 			print "\nError: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed).\n"
-			if self.debug:
-				print "\n========== END EMBED ==========\n"
 			return 0
 		else:
-			print "\nEmbedded:\n\t\"" + data + "\"\n"
+			self.print_info("Done embedding.","")
 			output_file = open(self.file_op.file_name + ".out","w")
 			output_file.write(new_file)
 			output_file.close()
@@ -362,8 +357,12 @@ class PDF_stego:
 			output.fix()
 			output_fixed = PDF_file(self.file_op.file_name + ".out.fix")
 			output_fixed.compress()
-			print "\nWrote compressed PDF to \"" + self.file_op.file_name + ".out.fix.pdf\" with " + str(self.tj_count) + " TJ ops (" + str(nums[1].__len__()) + " of them used for data, " + str(ind.__len__()) + " used in total)\n"
-			if self.improve and self.debug:
+			self.print_info("Output file","\"" + self.file_op.file_name + ".out.fix.pdf\"")
+			self.print_debug("Embedded data","\"" + data + "\"")
+			self.print_debug("Total nb of TJ ops",self.tj_count)
+			self.print_debug("Total nb of TJ ops used",ind.__len__())
+			self.print_debug("Total nb of TJ ops used for data",nums[1].__len__())
+			if self.debug:
 				embd_file = open(self.file_op.file_name + ".out.fix")
 				embd_file.seek(0,0)
 				tjss = []
@@ -374,18 +373,21 @@ class PDF_stego:
 					if m != None:
 						tjs += self.get_tjs(m.group(1))
 						tjss += self.get_tjs_signed(m.group(1))
-				print_nums('TJ values after',tjss)
-				print "===== TJ average after: " + str(n.avg(tjss)) + " ====="
-				print "===== TJ unsigned average after: " + str(n.avg(tjs)) + " ====="
-				print "===== Sign bug ====="
-				i = 1
+				embd_file.close()
+				if self.improve:
+					self.print_debug('TJ values after',tjss)
+					self.print_debug('TJ average after',n.avg(tjss))
+					self.print_debug('TJ unsigned average after',n.avg(tjs))
+				i = 0
+				if self.improve:
+					i = 1
+				sbugs = []
 				while i < tjss.__len__():
 					if tjss[i] * tjss_[i] < 0:
-						print "\t[" + str(i) + "]\t" + str(tjss_[i]) + "\t" + str(tjss[i])
+						sbugs += ["\t[" + str(i) + "]\t" + str(tjss_[i]) + "\t" + str(tjss[i])]
 					i += 1
-				embd_file.close()
-			if self.debug:
-				print "\n========== END EMBED ==========\n"
+				if sbugs.__len__() > 0:
+					self.print_debug("Sign bugs",sbugs)
 			return nums[1].__len__()
 
 	def extract_op(self,val,ch_two):
@@ -420,9 +422,9 @@ class PDF_stego:
 	# Extracts data of known length from PDF file "<file>" using derived_key, outputs extracted data to "<file>.embd"
 	def extract(self,derived_key,length):
 		self.tj_count = 0
-		if self.debug:
-			print "\n========== BEGIN EXTRACT ==========\n"
-		print "\nExtracting with key \"" + derived_key + "\" from file \"" + self.file_op.file_name + "\"...\n"
+		self.print_info("Key","\"" + derived_key + "\"")
+		self.print_info("Input file","\"" + self.file_op.file_name + "\"")
+		self.print_info("Extracting data, please wait...","")
 		length_ = length
 		# Only works for valid PDF files
 		self.file_op.uncompress()
@@ -430,8 +432,7 @@ class PDF_stego:
 		n = Numerals(self.nbits)
 		# Get the numerals from the key
 		nums = n.encode_key(derived_key)
-		if self.debug:
-			print_nums('FlagStr',nums)
+		self.print_debug('FlagStr',nums)
 		# Initiate chaotic map
 		ch_two = Chaotic(self.mu_two,nums)
 		tjs = []
@@ -445,8 +446,6 @@ class PDF_stego:
 		embedding_file.close()
 		if self.improve and tjs.__len__() < 40 + length:
 			print "\nError: not enough valid data to retrieve message: " + str(40 + length) + " > " + str(tjs.__len__()) + "\n"
-			if self.debug:
-				print "\n========== END EXTRACT ==========\n"
 			return -1
 		else:
 			if self.improve:
@@ -455,8 +454,7 @@ class PDF_stego:
 					jitter = tjs[0] + 1
 				else:
 					jitter = tjs[0] - 1
-				if self.debug:
-					print "===== Jitter found: " + str(jitter) + " (from TJ " + str(tjs[0]) + ") ====="
+				self.print_debug("Jitter found",jitter)
 			else:
 				jitter = 0
 			# Jitter data
@@ -466,13 +464,11 @@ class PDF_stego:
 			while k + 20 < tjs.__len__():
 				# Look for end position
 				if nums == tjs[k:k+20]:
-					if self.debug:
-						print "===== End position found: " + str(k + 20 - 1) + " ====="
+					self.print_debug('End position found',k + 20 - 1)
 					if self.improve:
 						# Go back to start position according to length, and extract
 						start = k-length-20
-						if self.debug:
-							print "===== Start position found: " + str(start) + " ====="
+						self.print_debug('Start position found',start)
 					else:
 						start = 0
 						length_ = k - 20
@@ -482,8 +478,6 @@ class PDF_stego:
 				k += 1
 			if k != tjs.__len__() + 1:
 				print "\nError: ending code FlagStr not found\n"
-				if self.debug:
-					print "\n========== END EXTRACT ==========\n"
 				return -1
 			else:
 				# Decode embedded data
@@ -495,9 +489,7 @@ class PDF_stego:
 						missing = -(bin_str.__len__() % 8) % 8
 						if missing > self.nbits:
 							print "\nError: ...\n" #TODO: message
-							if self.debug:
-								print_nums("Raw data (corrupted)",embedded)
-								print "\n========== END EXTRACT ==========\n"
+							self.print_debug("Raw data (corrupted)",embedded)
 							return -1
 						bin_str += bin[bin.__len__() - missing:]
 					else:
@@ -508,36 +500,34 @@ class PDF_stego:
 				for ch in emb_chars:
 					emb_str += ch
 				if self.debug:
-					print_nums('Data Checksum',n.encode_key(emb_str))
-					print_nums('CheckStr',checkstr)
-					print_nums('Data',embedded)
+					self.print_debug('Data Checksum',n.encode_key(emb_str))
+					self.print_debug('CheckStr',checkstr)
+					self.print_debug('Data',embedded)
 				# Check integrity
 				if n.digest_to_nums(emb_str) != checkstr:
-					print "\nError: CheckStr does not match embedded data from " + str(self.tj_count) + " TJ ops (" + str(tjs.__len__() - 40) + " of them used for data)\n"
-					if self.debug:
-						print "===== Raw data (corrupted) ====="
-						print "\t\"" + emb_str + "\""
-						print "\n========== END EXTRACT ==========\n"
+					print "\nError: CheckStr does not match embedded data\n"
+					self.print_debug("Raw data (corrupted)",emb_str)
 					return -1
 				else:
-					print "\nExtracted:\n\t\"" + emb_str + "\"\n"
+					self.print_info("Done Extracting.","")
 					output_file = open(self.file_op.file_name + ".embd","w")
 					output_file.write(emb_str)
-					print "\nWrote embedded data to \"" + self.file_op.file_name + ".embd\" from " + str(self.tj_count) + " TJ ops (" + str(length_) + " of them used for data)\n"
 					output_file.close()
-					if self.debug:
-						print "\n========== END EXTRACT ==========\n"
+					self.print_info("Output file","\"" + self.file_op.file_name + ".embd\"")
+					self.print_debug("Extracted data","\"" + emb_str + "\"")
+					self.print_debug("Total nb of TJ ops",self.tj_count)
+					self.print_debug("Total nb of TJ ops used",embedded.__len__() + 40)
+					self.print_debug("Total nb of TJ ops used for data",embedded.__len__())
 					return 0
 
-#
-#
-#
-# UTILITIES
-#
+	def print_debug(self,name,value):
+		if self.debug:
+			print '===== ' + name + ' ====='
+			print '\t' + str(value)
 
-def print_nums(name, nums):
-	print '===== ' + name + ' (' + str(nums.__len__()) + ') ====='
-	print '\t' + str(nums)
+	def print_info(self,name,value):
+		print '+++++ ' + name + ' +++++'
+		print '\t' + str(value)
 
 #
 #
