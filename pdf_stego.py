@@ -339,17 +339,23 @@ class PDF_stego:
 		i = 0
 		cover_file.seek(0,0)
 		for line in cover_file:
-			# Parse line for TJ blocks
-			m = re.search(r'\[(.*)\][ ]?TJ',line)
-			if m == None:
-				# No TJ blocks
-				new_file += line
-			else:
-				# Try to embed data in TJ block
-				newline = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,tjs.__len__(),jitter)
-				# Insert new block
-				new_file += line[:m.start(1)] + newline[0] + line[m.end(1):]
-				i = newline[1]
+			line_ = line
+			k = 0
+			while k < line_.__len__():
+				# Parse line for TJ blocks
+				m = re.match(r'\[(.*?)\][ ]?TJ',line_[k:])
+				if m == None:
+					# No TJ blocks
+					k += 1
+				else:
+					# Try to embed data in TJ block
+					block = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,tjs.__len__(),jitter)
+					# Insert new block
+					line_ = line_[:k + m.start(1)] + block[0] + line_[k + m.end(1):]
+					i = block[1]
+					# Update current position
+					k += m.start(1) + block[0].__len__()
+			new_file += line_
 		tjss_ = []
 		if self.debug:
 			cover_file.seek(0,0)
@@ -387,7 +393,6 @@ class PDF_stego:
 			self.print_debug("Total nb of TJ ops used for data",nums[1].__len__())
 			if self.debug:
 				embd_file = open(self.file_op.file_name + ".out.fix")
-				embd_file.seek(0,0)
 				tjss = []
 				# Parse file
 				for line in embd_file:
@@ -403,12 +408,10 @@ class PDF_stego:
 					self.print_debug('TJ average after',n.avg(tjss))
 					self.print_debug('TJ unsigned average after',n.avg(tjs))
 				i = 0
-				if self.improve:
-					i = 1
 				sbugs = []
 				while i < tjss.__len__():
 					if tjss[i] * tjss_[i] < 0:
-						sbugs += ["\t[" + str(i) + "]\t" + str(tjss_[i]) + "\t" + str(tjss[i])]
+						sbugs += ["@[" + str(i) + "] orig. " + str(tjss_[i]) + " | new " + str(tjss[i])]
 					i += 1
 				if sbugs.__len__() > 0:
 					self.print_debug("Sign bugs",sbugs)
