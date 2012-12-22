@@ -3,6 +3,7 @@ import os
 import sys
 import re
 import select
+import random
 import hashlib
 import optparse
 
@@ -121,7 +122,7 @@ class Numerals:
 # Generate chaotic maps
 class Chaotic:
 
-	mu = 3.6
+	mu = 3.9
 	x = 0
 
 	def __init__(self,mu,flagstr):
@@ -169,6 +170,18 @@ class PDF_stego:
 		self.debug = debug
 		self.redundancy = red
 		self.nbits = nbits
+		
+	def print_conf(self):
+		if self.debug:
+			print "\n===== CONFIG ====="
+			print "== input: \"" + self.file_op.file_name + ".qdf\""
+			print "== redundancy: " + str(self.redundancy)
+			print "== bit depth: " + str(self.nbits)
+			if self.improve:
+				i = "YES"
+			else:
+				i = "NO"
+			print "== using improvements: " + i
 
 	def get_tjs(self,line):
 		tjs = []
@@ -214,10 +227,10 @@ class PDF_stego:
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
 	def embed_op(self,val,ch_one,ch_two,num,jitter):
+		self.print_debug("TJ value",val)
 		if (not self.improve and abs(val) > 2**self.nbits) or val == 0:
 			# Do not use TJ op
 			return [False,val]
-		self.tj_count += 1
 		#if self.improve and self.tj_count == 1:
 			# Embed jitter value
 			#if jitter < 0:
@@ -227,11 +240,14 @@ class PDF_stego:
 			#return [False, jitter + 1]
 		if self.improve:
 			if ch_two < self.redundancy or num == None:
+				if ch_two < self.redundancy:
+					self.print_debug(str(ch_two) + " < " + str(self.redundancy),None)
 				# Use TJ op for a random value
 				if val < 0:
 					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one) + 1 )]
 				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one) + 1]
 			# Use TJ op for data
+			self.tj_count += 1
 			if val < 0:
 				return [True,-abs(val) + (abs(val) % (2**self.nbits)) - num - 1]
 			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + 1]
@@ -241,6 +257,7 @@ class PDF_stego:
 				return [False,-(int((2**self.nbits - 1) * ch_one) + 1 )]
 			return [False,int((2**self.nbits - 1) * ch_one) + 1]
 		# Use TJ op for data
+		self.tj_count += 1
 		if val < 0:
 			return [True, -num - 1]
 		return [True, num + 1]
@@ -271,21 +288,30 @@ class PDF_stego:
 				if i_ < ind.__len__():
 					# Try to embed numeral
 					if self.improve:
+						ch_one_next = 0
+						while ch_one_next == 0:
+							ch_one_next = ch_one.random()
+						ch_two_next = 0
+						while ch_two_next == 0:
+							ch_two_next = ch_two.random()
 						if self.tj_count < start:
 							if start + ind.__len__() - ntjs > self.tj_count:
-								op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[ntjs - start + self.tj_count],jitter)
+								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[ntjs - start + self.tj_count],jitter)
 							else:
-								op = self.embed_op(tj,ch_one.next(),ch_two.next(),None,jitter)
+								op = self.embed_op(tj,ch_one_next,ch_two_next,None,jitter)
 						else:
 							if start + ind.__len__() - ntjs > 0:
-								op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_ - (start + ind.__len__() - ntjs)],jitter)
+								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[i_ - (start + ind.__len__() - ntjs)],jitter)
 							else:
-								op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_],jitter)
+								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[i_],jitter)
 					else:
 						op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_],jitter)
 				else:
 					# No more numerals to embed
-					op = self.embed_op(tj,ch_one.next(),ch_two.next(),None,jitter)
+					if self.improve:
+						op = self.embed_op(tj,ch_one.random(),ch_two.random(),None,jitter)
+					else:
+						op = self.embed_op(tj,ch_one.next(),ch_two.next(),None,jitter)
 				if op[0]:
 					# One numeral was embedded, update IND index
 					i_ += 1
@@ -299,9 +325,9 @@ class PDF_stego:
 	#
 	# Returns the number of embedded numerals constituting the data
 	def embed(self,data,passkey):
+		self.print_conf()
 		self.tj_count = 0
 		self.print_info("Key","\"" + passkey + "\"")
-		self.print_info("Input file","\"" + self.file_op.file_name + ".qdf\"")
 		self.print_info("Embedding data, please wait...",None)
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf")
@@ -328,11 +354,15 @@ class PDF_stego:
 		self.print_debug('Data',n.msg_to_nums(data))
 		self.print_debug('Jitter',jitter)
 		# Initiate chaotic maps
-		ch_one = Chaotic(self.mu_one,nums[2])
-		ch_two = Chaotic(self.mu_two,nums[2])
-		# Parse file
 		if self.improve:
-			start = int(tjs.__len__() * ch_two.next())
+			ch_one = random.Random(n.digest(data))
+			ch_two = random.Random(passkey)
+		else:
+			ch_one = Chaotic(self.mu_one,nums[2])
+			ch_two = Chaotic(self.mu_two,nums[2])
+		# Parse file
+		if 0:#self.improve:
+			start = int(tjs.__len__() * ch_two.random())
 			self.print_debug("Random start position",start)
 		else:
 			start = 0
@@ -438,7 +468,13 @@ class PDF_stego:
 				k = line.__len__()
 			else:
 				# Try to extract numeral
-				tj = self.extract_op(int(m.group(1)),ch_two.next())
+				if self.improve:
+					ch_two_next = 0
+					while ch_two_next == 0:
+						ch_two_next = ch_two.random()
+				else:
+					ch_two_next = ch_two.next()
+				tj = self.extract_op(int(m.group(1)),ch_two_next)
 				if tj != 0:
 					# Get value
 					tjs += [tj]
@@ -448,6 +484,7 @@ class PDF_stego:
 
 	# Extracts data from PDF file "<file>" using derived_key, outputs extracted data to "<file>.embd"
 	def extract(self,derived_key):
+		self.print_conf()
 		self.tj_count = 0
 		self.print_info("Key","\"" + derived_key + "\"")
 		self.print_info("Input file","\"" + self.file_op.file_name + "\"")
@@ -460,8 +497,11 @@ class PDF_stego:
 		nums = n.encode_key(derived_key)
 		self.print_debug('FlagStr',nums)
 		# Initiate chaotic map
-		ch_two = Chaotic(self.mu_two,nums)
 		if self.improve:
+			ch_two = random.Random(derived_key)
+		else:
+			ch_two = Chaotic(self.mu_two,nums)
+		if 0:#self.improve:
 			# Parse file
 			tjs = []
 			for line in embedding_file:
@@ -469,7 +509,7 @@ class PDF_stego:
 				m = re.search(r'\[(.*)\][ ]?TJ',line)
 				if m != None:
 					tjs += self.get_tjs(m.group(1))
-			start = int(tjs.__len__() * ch_two.next())
+			start = int(tjs.__len__() * ch_two.random())
 			self.print_debug("Random start position",start)
 			embedding_file.seek(0,0)
 		else:
