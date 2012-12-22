@@ -157,8 +157,11 @@ class PDF_stego:
 	# Redundancy parameter, should be in ]0,1[
 	redundancy = 0.1
 	
-	# Do not replace unchanged characters by random characters
+	# Do not replace unchanged values by random values
 	norandom = False
+	
+	# Only use values in custom range for LaTeX
+	customrange = False
 
 	# Chaotic map parameters, should be in ]3.57,4[
 	mu_one = 3.7
@@ -167,12 +170,14 @@ class PDF_stego:
 	# Counter for TJ operators
 	tj_count = 0
 
-	def __init__(self,input,debug,improve,red,nbits):
+	def __init__(self,input,debug,improve,red,nbits,customrange):
 		self.file_op = PDF_file(input)
 		self.improve = improve
 		self.debug = debug
 		self.redundancy = red
 		self.nbits = nbits
+		if self.improve:
+			self.customrange = customrange
 		
 	def print_conf(self):
 		if self.debug:
@@ -241,15 +246,13 @@ class PDF_stego:
 			#self.print_debug('Embedded jitter',jitter + 1)
 			#return [False, jitter + 1]
 		if self.improve:
-			if ch_two < self.redundancy or num == None:
-				if ch_two < self.redundancy:
-					self.print_debug(str(ch_two) + " < " + str(self.redundancy),None)
+			if ch_two < self.redundancy or num == None or (self.customrange and (val > -250 or val < -450 or val == -333 or val == -334)):
 				# Use TJ op for a random value
 				if self.norandom:
 					return [False,val]
 				if val < 0:
-					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one_) + 1 )]
-				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one_) + 1]
+					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one) + 1 )]
+				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one) + 1]
 			# Use TJ op for data
 			self.tj_count += 1
 			if val < 0:
@@ -260,8 +263,8 @@ class PDF_stego:
 			if self.norandom:
 				return [False,val]
 			if val < 0:
-				return [False,-(int((2**self.nbits - 1) * ch_one_) + 1 )]
-			return [False,int((2**self.nbits - 1) * ch_one_) + 1]
+				return [False,-(int((2**self.nbits - 1) * ch_one) + 1 )]
+			return [False,int((2**self.nbits - 1) * ch_one) + 1]
 		# Use TJ op for data
 		self.tj_count += 1
 		if val < 0:
@@ -368,7 +371,7 @@ class PDF_stego:
 			ch_one = Chaotic(self.mu_one,nums[2])
 			ch_two = Chaotic(self.mu_two,nums[2])
 		# Parse file
-		if 0:#self.improve:
+		if 0:#self.improve: #TODO: fix
 			start = int(tjs.__len__() * ch_two.random())
 			self.print_debug("Random start position",start)
 		else:
@@ -412,7 +415,7 @@ class PDF_stego:
 				self.print_debug("TJ unsigned average before",n.avg(tjs))
 		cover_file.close()
 		if i < ind.__len__():
-			print "\nError: not enough space available (only " + str(self.tj_count) + ", " + str(ind.__len__()) + " needed).\n"
+			print "\nError: not enough space available (only " + str(self.tj_count) + " available, " + str(ind.__len__()) + " needed).\n"
 			return 0
 		else:
 			self.print_info("Done embedding.",None)
@@ -455,7 +458,7 @@ class PDF_stego:
 			return nums[1].__len__()
 
 	def extract_op(self,val,ch_two):
-		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy:
+		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -250 or val < -450 or val == -333 or val == -334)):
 			# Do not use TJ op
 			return 0
 		self.tj_count += 1
@@ -508,7 +511,7 @@ class PDF_stego:
 			ch_two = random.Random(derived_key)
 		else:
 			ch_two = Chaotic(self.mu_two,nums)
-		if 0:#self.improve:
+		if 0:#self.improve: #TODO: fix
 			# Parse file
 			tjs = []
 			for line in embedding_file:
@@ -646,8 +649,10 @@ def main():
 					  help="use NBITS as the number of bits to use for numerals [%default]", metavar="NBITS")
 	group2.add_option("-r", "--redundancy", dest="red", action="store", type="float", default=0.1,
 					  help="use RED as the redundancy parameter (strictly between 0 and 1) [%default]", metavar="RED")
-	group1.add_option("--norandom", action="store_true", dest="norandom", default=False,
+	group2.add_option("--no-random", action="store_true", dest="norandom", default=False,
 					  help="do not embed random values, keep original ones (ignored if extracting) [%default]")
+	group2.add_option("--custom-range", action="store_true", dest="customrange", default=False,
+					  help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random) [%default]")
 	parser.add_option_group(group0)
 	parser.add_option_group(group1)
 	parser.add_option_group(group2)
@@ -675,7 +680,7 @@ def main():
 			options.key = raw_input("Please enter stego-key:\n")
 		if options.red == None:
 			options.red = "0.1"
-		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits)
+		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits,options.customrange)
 		exit(ps.embed(options.msg,options.key,options.norandom))
 	elif args[0] == "extract":
 		if options.filename == None:
@@ -686,7 +691,7 @@ def main():
 			options.filename = "test.pdf.out.fix.pdf"
 		if options.key == None:
 			options.key = raw_input("Please enter derived-key:\n")
-		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits)
+		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits,options.customrange)
 		exit(ps.extract(options.key))
 	else:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
