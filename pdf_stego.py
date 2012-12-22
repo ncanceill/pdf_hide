@@ -153,9 +153,12 @@ class PDF_stego:
 
 	# Improvements flag
 	improve = False
-
+	
 	# Redundancy parameter, should be in ]0,1[
 	redundancy = 0.1
+	
+	# Do not replace unchanged characters by random characters
+	norandom = False
 
 	# Chaotic map parameters, should be in ]3.57,4[
 	mu_one = 3.7
@@ -227,7 +230,6 @@ class PDF_stego:
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
 	def embed_op(self,val,ch_one,ch_two,num,jitter):
-		self.print_debug("TJ value",val)
 		if (not self.improve and abs(val) > 2**self.nbits) or val == 0:
 			# Do not use TJ op
 			return [False,val]
@@ -243,9 +245,11 @@ class PDF_stego:
 				if ch_two < self.redundancy:
 					self.print_debug(str(ch_two) + " < " + str(self.redundancy),None)
 				# Use TJ op for a random value
+				if self.norandom:
+					return [False,val]
 				if val < 0:
-					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one) + 1 )]
-				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one) + 1]
+					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one_) + 1 )]
+				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one_) + 1]
 			# Use TJ op for data
 			self.tj_count += 1
 			if val < 0:
@@ -253,9 +257,11 @@ class PDF_stego:
 			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + 1]
 		if ch_two < self.redundancy or num == None:
 			# Use TJ op for a random value
+			if self.norandom:
+				return [False,val]
 			if val < 0:
-				return [False,-(int((2**self.nbits - 1) * ch_one) + 1 )]
-			return [False,int((2**self.nbits - 1) * ch_one) + 1]
+				return [False,-(int((2**self.nbits - 1) * ch_one_) + 1 )]
+			return [False,int((2**self.nbits - 1) * ch_one_) + 1]
 		# Use TJ op for data
 		self.tj_count += 1
 		if val < 0:
@@ -324,9 +330,10 @@ class PDF_stego:
 	# Embeds data with passkey in a PDF file "<file>", outputs stego PDF file "<file>.out.fix.pdf"
 	#
 	# Returns the number of embedded numerals constituting the data
-	def embed(self,data,passkey):
+	def embed(self,data,passkey,norandom):
 		self.print_conf()
 		self.tj_count = 0
+		self.norandom = norandom
 		self.print_info("Key","\"" + passkey + "\"")
 		self.print_info("Embedding data, please wait...",None)
 		self.file_op.uncompress()
@@ -639,6 +646,8 @@ def main():
 					  help="use NBITS as the number of bits to use for numerals [%default]", metavar="NBITS")
 	group2.add_option("-r", "--redundancy", dest="red", action="store", type="float", default=0.1,
 					  help="use RED as the redundancy parameter (strictly between 0 and 1) [%default]", metavar="RED")
+	group1.add_option("--norandom", action="store_true", dest="norandom", default=False,
+					  help="do not embed random values, keep original ones (ignored if extracting) [%default]")
 	parser.add_option_group(group0)
 	parser.add_option_group(group1)
 	parser.add_option_group(group2)
@@ -667,7 +676,7 @@ def main():
 		if options.red == None:
 			options.red = "0.1"
 		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits)
-		exit(ps.embed(options.msg,options.key))
+		exit(ps.embed(options.msg,options.key,options.norandom))
 	elif args[0] == "extract":
 		if options.filename == None:
 			options.filename = raw_input("Please enter input file name: [\"test.pdf.out.fix.pdf\"]\n")
