@@ -167,8 +167,9 @@ class PDF_stego:
 	mu_one = 3.7
 	mu_two = 3.8
 
-	# Counter for TJ operators
+	# Counters for TJ operators
 	tj_count = 0
+	tj_count_valid = 0
 
 	def __init__(self,input,debug,improve,red,nbits,customrange):
 		self.file_op = PDF_file(input)
@@ -245,8 +246,9 @@ class PDF_stego:
 			#	return [False, jitter - 1]
 			#self.print_debug('Embedded jitter',jitter + 1)
 			#return [False, jitter + 1]
+		self.tj_count += 1
 		if self.improve:
-			if ch_two < self.redundancy or num == None or (self.customrange and (val > -250 or val < -450 or val == -333 or val == -334)):
+			if ch_two < self.redundancy or num == None or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
 				# Use TJ op for a random value
 				if self.norandom:
 					return [False,val]
@@ -254,7 +256,7 @@ class PDF_stego:
 					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one) + 1 )]
 				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one) + 1]
 			# Use TJ op for data
-			self.tj_count += 1
+			self.tj_count_valid += 1
 			if val < 0:
 				return [True,-abs(val) + (abs(val) % (2**self.nbits)) - num - 1]
 			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + 1]
@@ -336,6 +338,7 @@ class PDF_stego:
 	def embed(self,data,passkey,norandom):
 		self.print_conf()
 		self.tj_count = 0
+		self.tj_count_valid = 0
 		self.norandom = norandom
 		self.print_info("Key","\"" + passkey + "\"")
 		self.print_info("Embedding data, please wait...",None)
@@ -371,7 +374,7 @@ class PDF_stego:
 			ch_one = Chaotic(self.mu_one,nums[2])
 			ch_two = Chaotic(self.mu_two,nums[2])
 		# Parse file
-		if 0:#self.improve: #TODO: fix
+		if self.improve:
 			start = int(tjs.__len__() * ch_two.random())
 			self.print_debug("Random start position",start)
 		else:
@@ -415,7 +418,7 @@ class PDF_stego:
 				self.print_debug("TJ unsigned average before",n.avg(tjs))
 		cover_file.close()
 		if i < ind.__len__():
-			print "\nError: not enough space available (only " + str(self.tj_count) + " available, " + str(ind.__len__()) + " needed).\n"
+			print "\nError: not enough space available (only " + str(self.tj_count_valid) + " available, " + str(ind.__len__()) + " needed).\n"
 			return 0
 		else:
 			self.print_info("Done embedding.",None)
@@ -458,10 +461,11 @@ class PDF_stego:
 			return nums[1].__len__()
 
 	def extract_op(self,val,ch_two):
-		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -250 or val < -450 or val == -333 or val == -334)):
+		self.tj_count += 1
+		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
 			# Do not use TJ op
 			return 0
-		self.tj_count += 1
+		self.tj_count_valid += 1
 		if 0:#self.improve and self.tj_count == 1:
 			return val
 		# Extract data from TJ op
@@ -496,6 +500,7 @@ class PDF_stego:
 	def extract(self,derived_key):
 		self.print_conf()
 		self.tj_count = 0
+		self.tj_count_valid = 0
 		self.print_info("Key","\"" + derived_key + "\"")
 		self.print_info("Input file","\"" + self.file_op.file_name + "\"")
 		self.print_info("Extracting data, please wait...",None)
@@ -511,7 +516,7 @@ class PDF_stego:
 			ch_two = random.Random(derived_key)
 		else:
 			ch_two = Chaotic(self.mu_two,nums)
-		if 0:#self.improve: #TODO: fix
+		if self.improve:
 			# Parse file
 			tjs = []
 			for line in embedding_file:
@@ -554,8 +559,8 @@ class PDF_stego:
 				end = k + 20 - 1
 				self.print_debug('End position found',end)
 				#length = end - start + 1
-				checkstr = tjs_[start:start + 20]
-				embedded = tjs_[start + 20:k]
+				checkstr = tjs_[start - 40:start - 20]
+				embedded = tjs_[start - 20:k]
 				c = tjs.__len__()
 			c += 1
 			k += 1
@@ -599,8 +604,9 @@ class PDF_stego:
 				self.print_info("Output file","\"" + self.file_op.file_name + ".embd\"")
 				self.print_debug("Extracted data","\"" + emb_str + "\"")
 				self.print_debug("Total nb of TJ ops",self.tj_count)
-				self.print_debug("Total nb of TJ ops used",embedded.__len__() + 40)
-				self.print_debug("Total nb of TJ ops used for data",embedded.__len__())
+				self.print_debug("Total nb of valid TJ ops",self.tj_count_valid)
+				self.print_debug("Total nb of valid TJ ops used",embedded.__len__() + 40)
+				self.print_debug("Total nb of valid TJ ops used for data",embedded.__len__())
 				return 0
 
 	def print_debug(self,name,value):
@@ -643,16 +649,16 @@ def main():
 					  help="use MESSAGE as the data to embed (ignored if extracting)", metavar="MESSAGE")
 	group1.add_option("-i", "--improve", action="store_true", dest="improve", default=False,
 					  help="use algo improvements [%default]")
+	group1.add_option("--no-random", action="store_true", dest="norandom", default=False,
+					  help="do not embed random values, keep original ones (ignored if extracting) [%default]")
 	group2.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
 					  help="print debug messages [%default]")
 	group2.add_option("-n", "--nbits", dest="nbits", action="store", type="int", default=4,
 					  help="use NBITS as the number of bits to use for numerals [%default]", metavar="NBITS")
 	group2.add_option("-r", "--redundancy", dest="red", action="store", type="float", default=0.1,
 					  help="use RED as the redundancy parameter (strictly between 0 and 1) [%default]", metavar="RED")
-	group2.add_option("--no-random", action="store_true", dest="norandom", default=False,
-					  help="do not embed random values, keep original ones (ignored if extracting) [%default]")
 	group2.add_option("--custom-range", action="store_true", dest="customrange", default=False,
-					  help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random) [%default]")
+					  help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding) [%default]")
 	parser.add_option_group(group0)
 	parser.add_option_group(group1)
 	parser.add_option_group(group2)
