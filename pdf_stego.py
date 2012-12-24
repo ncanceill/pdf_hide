@@ -248,7 +248,7 @@ class PDF_stego:
 			#return [False, jitter + 1]
 		self.tj_count += 1
 		if self.improve:
-			if ch_two < self.redundancy or num == None or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
+			if ch_two < self.redundancy or num == None or (self.customrange and (val > -257 or val < -447 or (val < -320 and val > -337))):
 				# Use TJ op for a random value
 				if self.norandom:
 					return [False,val]
@@ -268,7 +268,7 @@ class PDF_stego:
 				return [False,-(int((2**self.nbits - 1) * ch_one) + 1 )]
 			return [False,int((2**self.nbits - 1) * ch_one) + 1]
 		# Use TJ op for data
-		self.tj_count += 1
+		self.tj_count_valid += 1
 		if val < 0:
 			return [True, -num - 1]
 		return [True, num + 1]
@@ -284,9 +284,10 @@ class PDF_stego:
 	# Returns a list res[]
 	# res[0] is the modified line
 	# res[1] is the new value of the IND index
-	def embed_line(self,line,ch_one,ch_two,ind,i,start,ntjs,jitter):
+	def embed_line(self,line,ch_one,ch_two,ind,i,start,ntjs,jitter,j):
 		newline = line
 		i_ = i
+		j_ = j
 		k = 0
 		while k < newline.__len__():
 			# Parse TJ string from current position
@@ -305,16 +306,15 @@ class PDF_stego:
 						ch_two_next = 0
 						while ch_two_next == 0:
 							ch_two_next = ch_two.random()
-						if self.tj_count < start:
-							if start + ind.__len__() - ntjs > self.tj_count:
-								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[ntjs - start + self.tj_count],jitter)
+						if self.tj_count < start: #TODO: fix
+							if start + ind.__len__() + j_ - ntjs > self.tj_count:
+								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[ntjs - start + self.tj_count - j_],jitter)
 							else:
 								op = self.embed_op(tj,ch_one_next,ch_two_next,None,jitter)
+						elif self.tj_count - start < ind.__len__() + j_:
+							op = self.embed_op(tj,ch_one_next,ch_two_next,ind[self.tj_count - start - j_],jitter)
 						else:
-							if start + ind.__len__() - ntjs > 0:
-								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[i_ - (start + ind.__len__() - ntjs)],jitter)
-							else:
-								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[i_],jitter)
+							op = self.embed_op(tj,ch_one_next,ch_two_next,None,jitter)
 					else:
 						op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_],jitter)
 				else:
@@ -326,11 +326,13 @@ class PDF_stego:
 				if op[0]:
 					# One numeral was embedded, update IND index
 					i_ += 1
+				else:
+					j_ += 1
 				# Insert new value
 				newline = newline[:k + m.start(1)] + str(op[1]) + newline[k + m.end(1):]
 				# Update current position
 				k += m.start(1) + str(op[1]).__len__()
-		return [newline,i_]
+		return [newline,i_,j_]
 
 	# Embeds data with passkey in a PDF file "<file>", outputs stego PDF file "<file>.out.fix.pdf"
 	#
@@ -374,12 +376,13 @@ class PDF_stego:
 			ch_one = Chaotic(self.mu_one,nums[2])
 			ch_two = Chaotic(self.mu_two,nums[2])
 		# Parse file
-		if self.improve:
+		if 0:#self.improve: #TODO: fix
 			start = int(tjs.__len__() * ch_two.random())
 			self.print_debug("Random start position",start)
 		else:
 			start = 0
 		i = 0
+		j = 0
 		cover_file.seek(0,0)
 		for line in cover_file:
 			line_ = line
@@ -392,10 +395,11 @@ class PDF_stego:
 					k += 1
 				else:
 					# Try to embed data in TJ block
-					block = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,tjs.__len__(),jitter)
+					block = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,tjs.__len__(),jitter,j)
 					# Insert new block
 					line_ = line_[:k + m.start(1)] + block[0] + line_[k + m.end(1):]
 					i = block[1]
+					j = block[2]
 					# Update current position
 					k += m.start(1) + block[0].__len__()
 			new_file += line_
@@ -462,7 +466,7 @@ class PDF_stego:
 
 	def extract_op(self,val,ch_two):
 		self.tj_count += 1
-		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
+		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -257 or val < -447 or (val < -320 and val > -337))):
 			# Do not use TJ op
 			return 0
 		self.tj_count_valid += 1
@@ -516,7 +520,7 @@ class PDF_stego:
 			ch_two = random.Random(derived_key)
 		else:
 			ch_two = Chaotic(self.mu_two,nums)
-		if self.improve:
+		if 0:#self.improve:
 			# Parse file
 			tjs = []
 			for line in embedding_file:
@@ -559,8 +563,8 @@ class PDF_stego:
 				end = k + 20 - 1
 				self.print_debug('End position found',end)
 				#length = end - start + 1
-				checkstr = tjs_[start - 40:start - 20]
-				embedded = tjs_[start - 20:k]
+				checkstr = tjs_[start:start + 20]
+				embedded = tjs_[start + 20:k]
 				c = tjs.__len__()
 			c += 1
 			k += 1
