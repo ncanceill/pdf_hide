@@ -10,6 +10,27 @@ import optparse
 #
 #
 #
+# PDF HIDE
+#
+
+#
+# DISCLAIMER: This software is provided for free, with full copyrights, and without any warranty.
+#
+
+#
+# pdf_hide.py
+__version__ = "0.0a"
+#
+# This is a tool for hiding data in PDF files
+#
+# Written by Nicolas Canceill
+# Last updated on May 6, 2013
+# Hosted at https://github.com/ncanceill/pdf_hide
+#
+
+#
+#
+#
 # CLASSES
 #
 
@@ -641,7 +662,7 @@ class PDF_stego:
 #
 
 def main():
-	parser = optparse.OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0b")
+	parser = optparse.OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0a")
 	group0 = optparse.OptionGroup(parser, 'General options')
 	group1 = optparse.OptionGroup(parser, 'Basic options for improvements')
 	group2 = optparse.OptionGroup(parser, 'Advanced options')
