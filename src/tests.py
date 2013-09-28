@@ -1,8 +1,7 @@
 #!/usr/bin/python3
-
 import unittest
-import pdf_hide
 import os
+import pdf_algo
 
 #
 #
@@ -15,10 +14,10 @@ import os
 #
 
 #
-# pdf_hide.py
+# chaos.py
 __version__ = "0.0a"
 #
-# This is a collection of tests for the tool
+# This is a straightforward implementation of chaotic maps
 #
 # Written by Nicolas Canceill
 # Last updated on Sept 28, 2013
@@ -34,9 +33,13 @@ __version__ = "0.0a"
 class DependenciesTestCase(unittest.TestCase):
 	def test_dep_pdflatex(self):
 		self.assertEqual(os.system('which pdflatex > /dev/null'),0)
-
 	def test_dep_qpdf(self):
 		self.assertEqual(os.system('which qpdf > /dev/null'),0)
+
+class AlgoDefaultTestCase(unittest.TestCase):
+	def test_algodef_embed(self):
+		ps = pdf_algo.PDF_stego("../sample/test.pdf",False,False,0.1,4,False)
+		self.assertTrue(ps.embed("123456ThisIsA=|__TEST__|=","S3cr3|-",False) > 0)
 
 #
 #
@@ -45,4 +48,4 @@ class DependenciesTestCase(unittest.TestCase):
 #
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    unittest.main(verbosity=2,failfast=True)

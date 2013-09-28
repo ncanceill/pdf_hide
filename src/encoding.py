@@ -73,15 +73,15 @@ class Numerals:
 
 	# Returns the 20-byte SHA1 digest of a string as an hexadecimal string
 	def digest(self,str):
-		return hashlib.sha1(str).hexdigest()
+		return hashlib.sha1(str.encode('utf-8')).hexdigest()
 
 	# Encodes a 20-byte SHA1 digest to a list of 20 numerals array according to the algo
 	def digest_to_nums(self,d):
-		return map(self.hexstr_to_num,self.split_len(self.digest(d),2))
+		return list(map(self.hexstr_to_num,self.split_len(self.digest(d),2)))
 
 	# Encodes a message to a list of numerals according to the algo
 	def msg_to_nums(self,msg):
-		return map(self.binstr_to_num,[self.pad_binstr(bin,self.n) for bin in self.split_len(self.str_to_binstr(msg),self.n)])
+		return list(map(self.binstr_to_num,[self.pad_binstr(bin,self.n) for bin in self.split_len(self.str_to_binstr(msg),self.n)]))
 
 	# Encodes a message and a stego key according to the algo
 	#

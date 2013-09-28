@@ -2,7 +2,9 @@
 import re
 import random
 
+import pdf_drive
 import encoding
+import chaos
 
 #
 #
@@ -60,7 +62,7 @@ class PDF_stego:
 	tj_count_valid = 0
 
 	def __init__(self,input,debug,improve,red,nbits,customrange):
-		self.file_op = PDF_file(input)
+		self.file_op = pdf_drive.PDF_file(input)
 		self.improve = improve
 		self.debug = debug
 		self.redundancy = red
@@ -233,9 +235,9 @@ class PDF_stego:
 		self.print_info("Key","\"" + passkey + "\"")
 		self.print_info("Embedding data, please wait...",None)
 		self.file_op.uncompress()
-		cover_file = open(self.file_op.file_name + ".qdf")
+		cover_file = open(self.file_op.file_name + ".qdf",encoding="iso-8859-1")
 		new_file = ""
-		n = Numerals(self.nbits)
+		n = encoding.Numerals(self.nbits)
 		# Get the numerals to embed from the key and the message
 		nums = n.encode_msg(data,passkey)
 		ind = nums[0] + nums[1] + nums[2]
@@ -261,8 +263,8 @@ class PDF_stego:
 			ch_one = random.Random(n.digest(data))
 			ch_two = random.Random(passkey)
 		else:
-			ch_one = Chaotic(self.mu_one,nums[2])
-			ch_two = Chaotic(self.mu_two,nums[2])
+			ch_one = chaos.Chaotic(self.mu_one,nums[2])
+			ch_two = chaos.Chaotic(self.mu_two,nums[2])
 		# Parse file
 		if 0:#self.improve: #TODO: fix
 			start = int(tjs.__len__() * ch_two.random())
@@ -317,9 +319,9 @@ class PDF_stego:
 			output_file = open(self.file_op.file_name + ".out","w")
 			output_file.write(new_file)
 			output_file.close()
-			output = PDF_file(self.file_op.file_name + ".out")
+			output = pdf_drive.PDF_file(self.file_op.file_name + ".out")
 			output.fix()
-			output_fixed = PDF_file(self.file_op.file_name + ".out.fix")
+			output_fixed = pdf_drive.PDF_file(self.file_op.file_name + ".out.fix")
 			output_fixed.compress()
 			self.print_info("Output file","\"" + self.file_op.file_name + ".out.fix.pdf\"")
 			self.print_debug("Embedded data","\"" + data + "\"")
@@ -399,7 +401,7 @@ class PDF_stego:
 		# Only works for valid PDF files
 		self.file_op.uncompress()
 		embedding_file = open(self.file_op.file_name + '.qdf')
-		n = Numerals(self.nbits)
+		n = encoding.Numerals(self.nbits)
 		# Get the numerals from the key
 		nums = n.encode_key(derived_key)
 		self.print_debug('FlagStr',nums)
@@ -407,7 +409,7 @@ class PDF_stego:
 		if self.improve:
 			ch_two = random.Random(derived_key)
 		else:
-			ch_two = Chaotic(self.mu_two,nums)
+			ch_two = chaos.Chaotic(self.mu_two,nums)
 		if 0:#self.improve:
 			# Parse file
 			tjs = []

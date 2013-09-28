@@ -7,9 +7,8 @@
 #
 # DISCLAIMER: This software is provided for free, with full copyrights, and without any warranty.
 #
-
-#
-# Makefile
+NAME=pdf_hide
+VERSION=0.0a
 #
 # This is a Makefile for pdf_hide v0.0a
 #
@@ -24,8 +23,6 @@
 # VARS
 #
 
-NAME=pdf_hide
-VERSION=0.0a
 
 #
 # Exts
@@ -55,9 +52,13 @@ PYTH=$(PYTH_B) $(PYTH_F)
 SRC_D=src
 SRC=$(SRC_D)/*$(PY)
 
+SAMPLE_D=sample
+ADD=$(SAMPLE_D)/*
+
 UTL=Makefile README.md
 
-TEST=$(SRC_D)/tests$(PY)
+TEST_D=$(SRC_D)
+TEST=tests$(PY)
 
 #
 #
@@ -65,22 +66,29 @@ TEST=$(SRC_D)/tests$(PY)
 # TARGETS
 #
 
+all:
+
 #
 # Package
 
 pkg: $(SRC) clean
-	$(TAR) $(NAME)-$(VERSION)$(TGZ) $(SRC) $(UTL)
+	$(TAR) $(NAME)-$(VERSION)$(TGZ) $(SRC) $(UTL) $(ADD)
 
 #
 # Tests
 
-test: $(SRC)
-	$(PYTH) $(TEST)
+samples:
+	make -C $(SAMPLE_D) all
+
+test: samples
+	cd $(TEST_D) && $(PYTH) $(TEST)
+	make -C $(SAMPLE_D) clean
 
 #
 # Clean
 
 clean:
+	make -C $(SAMPLE_D) clean
 
 clean-pkg:
 	$(RM) $(NAME)-$(VERSION)$(TGZ)
