@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 import sys
 import re
 import select
 import random
 import hashlib
-import optparse
+import argparse
 
 #
 #
@@ -203,15 +203,15 @@ class PDF_stego:
 		
 	def print_conf(self):
 		if self.debug:
-			print "\n===== CONFIG ====="
-			print "== input: \"" + self.file_op.file_name + ".qdf\""
-			print "== redundancy: " + str(self.redundancy)
-			print "== bit depth: " + str(self.nbits)
+			print("\n===== CONFIG =====")
+			print("== input: \"" + self.file_op.file_name + ".qdf\"")
+			print("== redundancy: " + str(self.redundancy))
+			print("== bit depth: " + str(self.nbits))
 			if self.improve:
 				i = "YES"
 			else:
 				i = "NO"
-			print "== using improvements: " + i
+			print("== using improvements: " + i)
 
 	def get_tjs(self,line):
 		tjs = []
@@ -443,7 +443,7 @@ class PDF_stego:
 				self.print_debug("TJ unsigned average before",n.avg(tjs))
 		cover_file.close()
 		if i < ind.__len__():
-			print "\nError: not enough space available (only " + str(self.tj_count_valid) + " available, " + str(ind.__len__()) + " needed).\n"
+			print("\nError: not enough space available (only " + str(self.tj_count_valid) + " available, " + str(ind.__len__()) + " needed).\n")
 			return 0
 		else:
 			self.print_info("Done embedding.",None)
@@ -590,7 +590,7 @@ class PDF_stego:
 			c += 1
 			k += 1
 		if c != tjs.__len__() + 1:
-			print "\nError: ending code FlagStr not found\n"
+			print("\nError: ending code FlagStr not found\n")
 			return -1
 		else:
 			# Decode embedded data
@@ -601,7 +601,7 @@ class PDF_stego:
 				if k == embedded.__len__() - 1:
 					missing = -(bin_str.__len__() % 8) % 8
 					if missing > self.nbits:
-						print "\nError: ...\n" #TODO: message
+						print("\nError: ...\n") #TODO: message
 						self.print_debug("Raw data (corrupted)",embedded)
 						return -1
 					bin_str += bin[bin.__len__() - missing:]
@@ -618,7 +618,7 @@ class PDF_stego:
 				self.print_debug('Data',embedded)
 			# Check integrity
 			if n.digest_to_nums(emb_str) != checkstr:
-				print "\nError: CheckStr does not match embedded data\n"
+				print("\nError: CheckStr does not match embedded data\n")
 				self.print_debug("Raw data (corrupted)",emb_str)
 				return -1
 			else:
@@ -637,23 +637,23 @@ class PDF_stego:
 	def print_debug(self,name,value):
 		if self.debug:
 			if value != None and hasattr(value, '__len__'):
-				print '===== ' + name + ' (' + str(value.__len__()) + ') ====='
+				print('===== ' + name + ' (' + str(value.__len__()) + ') =====')
 			else:
-				print '===== ' + name + ' ====='
+				print('===== ' + name + ' =====')
 			if value == None:
-				print ""
+				print("")
 			else:
-				print '\t' + str(value)
+				print('\t' + str(value))
 
 	def print_info(self,name,value):
 		if value != None and hasattr(value, '__len__'):
-			print '+++++ ' + name + ' (' + str(value.__len__()) + ') +++++'
+			print('+++++ ' + name + ' (' + str(value.__len__()) + ') +++++')
 		else:
-			print '+++++ ' + name + ' +++++'
+			print('+++++ ' + name + ' +++++')
 		if value == None:
-			print ""
+			print("")
 		else:
-			print '\t' + str(value)
+			print('\t' + str(value))
 
 #
 #
@@ -662,35 +662,29 @@ class PDF_stego:
 #
 
 def main():
-	parser = optparse.OptionParser(usage="%prog {embed|extract} [options]", version="%prog 0.0a")
-	group0 = optparse.OptionGroup(parser, 'General options')
-	group1 = optparse.OptionGroup(parser, 'Basic options for improvements')
-	group2 = optparse.OptionGroup(parser, 'Advanced options')
-	group0.add_option("-f", "--file", dest="filename",
-					  help="use PDF file (may be compressed) FILENAME as input", metavar="FILENAME")
-	group0.add_option("-k", "--key", dest="key",
+	parser = argparse.ArgumentParser(prog="pdf_hide",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument("action",
+						help="action to execute: embed|extract")
+	parser.add_argument("-f", "--file", dest="filename",
+						help="use PDF file (may be compressed) FILENAME as input", metavar="FILENAME")
+	parser.add_argument("-k", "--key", dest="key",
 					  help="use KEY as the stego-key", metavar="KEY")
-	group0.add_option("-m", "--message", dest="msg",
+	parser.add_argument("-m", "--message", dest="msg",
 					  help="use MESSAGE as the data to embed (ignored if extracting)", metavar="MESSAGE")
-	group1.add_option("-i", "--improve", action="store_true", dest="improve", default=False,
-					  help="use algo improvements [%default]")
-	group1.add_option("--no-random", action="store_true", dest="norandom", default=False,
-					  help="do not embed random values, keep original ones (ignored if extracting) [%default]")
-	group2.add_option("-d", "--debug", action="store_true", dest="debug", default=False,
-					  help="print debug messages [%default]")
-	group2.add_option("-n", "--nbits", dest="nbits", action="store", type="int", default=4,
-					  help="use NBITS as the number of bits to use for numerals [%default]", metavar="NBITS")
-	group2.add_option("-r", "--redundancy", dest="red", action="store", type="float", default=0.1,
-					  help="use RED as the redundancy parameter (strictly between 0 and 1) [%default]", metavar="RED")
-	group2.add_option("--custom-range", action="store_true", dest="customrange", default=False,
-					  help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding) [%default]")
-	parser.add_option_group(group0)
-	parser.add_option_group(group1)
-	parser.add_option_group(group2)
-	(options, args) = parser.parse_args()
-	if args.__len__() != 1:
-		parser.error("Please use command \"embed\" only or command \"extract\" only.")
-	if args[0] == "embed":
+	parser.add_argument("-n", "--nbits", dest="nbits", action="store", type=int, default=4,
+					  help="use NBITS as the number of bits to use for numerals", metavar="NBITS")
+	parser.add_argument("-r", "--redundancy", dest="red", action="store", type=float, default=0.1,
+						help="use RED as the redundancy parameter (strictly between 0 and 1)", metavar="RED")
+	parser.add_argument("-i", "--improve", action="store_true", dest="improve", default=False,
+						help="use algo improvements")
+	parser.add_argument("--no-random", action="store_true", dest="norandom", default=False,
+						help="do not embed random values, keep original ones (ignored if extracting)")
+	parser.add_argument("--custom-range", action="store_true", dest="customrange", default=False,
+						help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding)")
+	parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False,
+						help="print debug messages")
+	args = parser.parse_args()
+	if args.action == "embed":
 		if select.select([sys.stdin,],[],[],0.0)[0]:
 			input = ""
 			for line in sys.stdin:
@@ -698,32 +692,32 @@ def main():
 					input += "\n"
 				input += line
 			sys.stdin = open("/dev/tty")
-			options.msg = input
-		if options.msg == None:
-			options.msg = raw_input("Please enter the message to embed:\n")
-		if options.filename == None:
-			options.filename = raw_input("Please enter input file name: [\"test.pdf\"]\n")
-		if options.filename.__len__() == 0:
-			if options.debug:
-				print "No file name provided, using default: \"test.pdf\""
-			options.filename = "test.pdf"
-		if options.key == None:
-			options.key = raw_input("Please enter stego-key:\n")
-		if options.red == None:
-			options.red = "0.1"
-		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits,options.customrange)
-		exit(ps.embed(options.msg,options.key,options.norandom))
+			args.msg = input
+		if args.msg == None:
+			args.msg = raw_input("Please enter the message to embed:\n")
+		if args.filename == None:
+			args.filename = raw_input("Please enter input file name: [\"test.pdf\"]\n")
+		if args.filename.__len__() == 0:
+			if args.debug:
+				print("No file name provided, using default: \"test.pdf\"")
+			args.filename = "test.pdf"
+		if args.key == None:
+			args.key = raw_input("Please enter stego-key:\n")
+		if args.red == None:
+			args.red = "0.1"
+		ps = PDF_stego(args.filename,args.debug,args.improve,args.red,args.nbits,args.customrange)
+		exit(ps.embed(args.msg,args.key,args.norandom))
 	elif args[0] == "extract":
-		if options.filename == None:
-			options.filename = raw_input("Please enter input file name: [\"test.pdf.out.fix.pdf\"]\n")
-		if options.filename.__len__() == 0:
-			if options.debug:
-				print "No file name provided, using default: \"test.pdf.out.fix.pdf\""
-			options.filename = "test.pdf.out.fix.pdf"
-		if options.key == None:
-			options.key = raw_input("Please enter derived-key:\n")
-		ps = PDF_stego(options.filename,options.debug,options.improve,options.red,options.nbits,options.customrange)
-		exit(ps.extract(options.key))
+		if args.filename == None:
+			args.filename = raw_input("Please enter input file name: [\"test.pdf.out.fix.pdf\"]\n")
+		if args.filename.__len__() == 0:
+			if args.debug:
+				print("No file name provided, using default: \"test.pdf.out.fix.pdf\"")
+			args.filename = "test.pdf.out.fix.pdf"
+		if args.key == None:
+			args.key = raw_input("Please enter derived-key:\n")
+		ps = PDF_stego(args.filename,args.debug,args.improve,args.red,args.nbits,args.customrange)
+		exit(ps.extract(args.key))
 	else:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 
