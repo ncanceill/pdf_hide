@@ -38,10 +38,6 @@ class DependenciesTestCase(unittest.TestCase):
 	def test_dep_qpdf(self):
 		self.assertEqual(os.system('which qpdf > /dev/null'),0)
 
-class GenericTestCase(unittest.TestCase):
-	def test_gen_proghelp(self):
-		self.assertEqual(os.system('./pdf_hide.py -h > /dev/null'),0)
-
 #
 #
 #
