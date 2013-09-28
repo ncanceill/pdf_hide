@@ -1,11 +1,13 @@
 #!/usr/bin/python3
-import os
 import sys
 import re
 import select
 import random
 import hashlib
 import argparse
+
+import pdf_drive
+import chaos
 
 #
 #
@@ -33,26 +35,6 @@ __version__ = "0.0a"
 #
 # CLASSES
 #
-
-# Handle PDF files
-class PDF_file:
-
-	file_name = ''
-
-	def __init__(self,file_name):
-		self.file_name = file_name
-
-	# Generates QDF file "<file>.qdf" from PDF file "<file>", uncompressing streams if needed
-	def uncompress(self):
-		os.system('qpdf '+self.file_name+' '+self.file_name+'.qdf --qdf --stream-data=uncompress')
-
-	# Generates fixed QDF  file "<file>.fix" from damaged QDF file "<file>", reconstructing XRef and trailer if needed
-	def fix(self):
-		os.system('fix-qdf <'+self.file_name+' >'+self.file_name+'.fix')
-
-	# Generates PDF file "<file>.pdf" from QDF or PDF file "<file>", compressing streams if needed
-	def compress(self):
-		os.system('qpdf '+self.file_name+' '+self.file_name+'.pdf --stream-data=compress')
 
 # Handle 015 and 116 numeral integers, and binary strings, and other stuff
 class Numerals:
@@ -139,29 +121,6 @@ class Numerals:
 			n += (nums[i] - nums_[i])
 			i += 1
 		return float(n) / nums_.__len__()
-
-# Generate chaotic maps
-class Chaotic:
-
-	mu = 3.9
-	x = 0
-
-	def __init__(self,mu,flagstr):
-		self.mu = mu
-		self.x = self.gen_chaokey(flagstr)
-
-	# Generates a chaotic key (seed for the chaotic map) according to the algo
-	def gen_chaokey(self,flagstr):
-		dec = ""
-		for i in flagstr:
-			dec = dec + str(i)
-		return float("0." + dec)
-
-	# Gets the next real number from the chaotic map
-	def next(self):
-		x_ = self.mu * self.x * (1 - self.x)
-		self.x = x_
-		return self.x
 
 # Perform the stego algorithm
 class PDF_stego:
