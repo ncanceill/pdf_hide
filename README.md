@@ -1,6 +1,6 @@
 # pdf_hide
 
-A Python 3 steganographic tool for hiding data in [PDF](https://www.adobe.com/devnet/acrobat/pdfs/PDF32000_2008.pdf‎) files
+A Python 3 steganographic tool for hiding data in [PDF](https://www.adobe.com/devnet/acrobat/pdfs/PDF32000_2008.pdf) files
 
 * [What can it do?](#basic-usage)
 * [How to get it](#getting-started)
@@ -62,7 +62,7 @@ Please check the [contributions status](../../wiki/contribute#status) if you wan
 
 ## License information
 
-This project distributes under [GNU General Public License v3](../LICENSE.md) from the Free Software Foundation.
+This project distributes under [GNU General Public License v3](LICENSE.md) from the Free Software Foundation.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
