@@ -33,7 +33,7 @@ It requires [QPDF](http://qpdf.sourceforge.net) in order to modify compressed PD
 
 ### Setup
 
-You can find the latest version packaged on the [tags page](../../tags). The current version is 0.0 alpha: [tgz](../../archive/v0.0a.tar.gz) — [zip](../../archive/v0.0a.zip).
+You can find the latest version packaged on the [releases page](../../releases). The current version is [0.0 alpha](../../releases/tag/v0.0a): [tgz](../../archive/v0.0a.tar.gz) — [zip](../../archive/v0.0a.zip).
 
 ## Project status
 
