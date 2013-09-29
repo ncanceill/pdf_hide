@@ -33,7 +33,7 @@ import chaos
 # pdf_algo.py
 __version__ = "0.0a"
 #
-# This is a tool for hiding data in PDF files
+# This is a steganographic algorithm able to hide data in PDF files
 #
 # Written by Nicolas Canceill
 # Last updated on Sept 28, 2013

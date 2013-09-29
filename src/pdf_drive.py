@@ -28,8 +28,7 @@ import os
 # pdf_drive.py
 __version__ = "0.0a"
 #
-# This is a simple API for handling PDF files
-# It requires qpdf
+# This is a simple API for handling PDF files based on qpdf
 #
 # Written by Nicolas Canceill
 # Last updated on Sept 28, 2013

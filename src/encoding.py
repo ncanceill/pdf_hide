@@ -28,7 +28,7 @@ import hashlib
 # encoding.py
 __version__ = "0.0a"
 #
-# This is a tool for hiding data in PDF files
+# This is a collection of utility functions for pdf_hide v0.0a
 #
 # Written by Nicolas Canceill
 # Last updated on Sept 28, 2013

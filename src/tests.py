@@ -30,7 +30,7 @@ import pdf_algo
 # chaos.py
 __version__ = "0.0a"
 #
-# This is a straightforward implementation of chaotic maps
+# This is a test suite for pdf_hide v0.0a
 #
 # Written by Nicolas Canceill
 # Last updated on Sept 29, 2013
