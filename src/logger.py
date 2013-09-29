@@ -61,10 +61,10 @@ class rootLogger:
 
 	def print_splash(parser):
 		if VERBOSE >= 0 : print("====================")
-		print MSG_VERSION
+		print(MSG_VERSION)
 		if VERBOSE >= 0 : print("====================")
 
 	def print_discl(parser):
 		if VERBOSE >= 0 : print("====================")
-		print MSG_LICENSE
+		print(MSG_LICENSE)
 		if VERBOSE >= 0 : print("====================")

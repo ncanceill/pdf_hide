@@ -3,8 +3,7 @@ import sys
 import select
 import argparse
 
-import pdf_drive
-import chaos
+import logger
 import pdf_algo
 
 #
@@ -48,11 +47,11 @@ __version__ = "0.0a"
 #
 
 def main():
-	parser = argparse.ArgumentParser(prog="pdf_hide",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser.add_argument("action",
-						help="action to execute: embed|extract")
-	parser.add_argument("-f", "--file", dest="filename",
-						help="use PDF file (may be compressed) FILENAME as input", metavar="FILENAME")
+	parser = argparse.ArgumentParser(prog="pdf_hide",formatter_class=argparse.RawDescriptionHelpFormatter,description=logger.MSG_DESC,epilog=logger.MSG_LICENSE)
+	parser.add_argument("action",choices=["embed","extract"],
+						help="action to execute")
+	parser.add_argument("filename",default="test.pdf",
+						help="PDF file (may be compressed) to use as input")
 	parser.add_argument("-k", "--key", dest="key",
 					  help="use KEY as the stego-key", metavar="KEY")
 	parser.add_argument("-m", "--message", dest="msg",
@@ -69,11 +68,12 @@ def main():
 						help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding)")
 	parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False,
 						help="print debug messages")
-	parser.add_argument("-q", "--quiet", action="store_true", dest="debug", default=False,
+	parser.add_argument("-q", "--quiet", action="store_true", dest="debug", default=False, #TODO: control verbosity with argparse count
 						help="do not print info messages")
+	parser.add_argument("--version", action="version", version=logger.MSG_VERSION)
 	args = parser.parse_args()
 	if args.action == "embed":
-		if select.select([sys.stdin,],[],[],0.0)[0]:
+		if select.select([sys.stdin,],[],[],0.0)[0]:#TODO: use argparse to do that
 			input = ""
 			for line in sys.stdin:
 				if input.__len__() > 0:
@@ -81,14 +81,6 @@ def main():
 				input += line
 			sys.stdin = open("/dev/tty")
 			args.msg = input
-		if args.msg == None:
-			args.msg = raw_input("Please enter the message to embed:\n")
-		if args.filename == None:
-			args.filename = raw_input("Please enter input file name: [\"test.pdf\"]\n")
-		if args.filename.__len__() == 0:
-			if args.debug:
-				print("No file name provided, using default: \"test.pdf\"")
-			args.filename = "test.pdf"
 		if args.key == None:
 			args.key = raw_input("Please enter stego-key:\n")
 		if args.red == None:
@@ -96,18 +88,10 @@ def main():
 		ps = PDF_stego(args.filename,args.debug,args.quiet,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.embed(args.msg,args.key,args.norandom))
 	elif args[0] == "extract":
-		if args.filename == None:
-			args.filename = raw_input("Please enter input file name: [\"test.pdf.out.fix.pdf\"]\n")
-		if args.filename.__len__() == 0:
-			if args.debug:
-				print("No file name provided, using default: \"test.pdf.out.fix.pdf\"")
-			args.filename = "test.pdf.out.fix.pdf"
 		if args.key == None:
 			args.key = raw_input("Please enter derived-key:\n")
 		ps = PDF_stego(args.filename,args.debug,args.quiet,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.extract(args.key))
-	else:
-		parser.error("Please use command \"embed\" only or command \"extract\" only.")
 
 if __name__ == '__main__':
     main()
