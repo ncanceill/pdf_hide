@@ -82,7 +82,6 @@ samples:
 
 test: samples
 	cd $(TEST_D) && $(PYTH) $(TEST)
-	make -C $(SAMPLE_D) clean
 
 #
 # Clean

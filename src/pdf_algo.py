@@ -61,10 +61,11 @@ class PDF_stego:
 	tj_count = 0
 	tj_count_valid = 0
 
-	def __init__(self,input,debug,improve,red,nbits,customrange):
+	def __init__(self,input,debug,quiet,improve,red,nbits,customrange):
 		self.file_op = pdf_drive.PDF_file(input)
 		self.improve = improve
 		self.debug = debug
+		self.quiet = quiet
 		self.redundancy = red
 		self.nbits = nbits
 		if self.improve:
@@ -251,7 +252,7 @@ class PDF_stego:
 					tjs += self.get_tjs(m.group(1))
 			# Jitter data
 			jitter = 0#int(n.mean(tjs,ind)) #TODO: improve jitter calculation
-			ind = map(lambda x: (x + jitter) % (2**self.nbits),ind)
+			ind = list(map(lambda x: (x + jitter) % (2**self.nbits),ind))
 		else:
 			jitter = 0
 		self.print_debug('FlagStr1 (CheckStr)',nums[0])
@@ -400,7 +401,7 @@ class PDF_stego:
 		self.print_info("Extracting data, please wait...",None)
 		# Only works for valid PDF files
 		self.file_op.uncompress()
-		embedding_file = open(self.file_op.file_name + '.qdf')
+		embedding_file = open(self.file_op.file_name + '.qdf',encoding="iso-8859-1")
 		n = encoding.Numerals(self.nbits)
 		# Get the numerals from the key
 		nums = n.encode_key(derived_key)
@@ -442,7 +443,7 @@ class PDF_stego:
 		else:
 			jitter = 0
 		# Jitter data
-		tjs = map(lambda x: (x - jitter - 1) % (2**self.nbits), tjs)
+		tjs = list(map(lambda x: (x - jitter - 1) % (2**self.nbits), tjs))
 		tjs_ = tjs + tjs
 		# Extract data
 		k = start + 20
@@ -515,11 +516,12 @@ class PDF_stego:
 				print('\t' + str(value))
 
 	def print_info(self,name,value):
-		if value != None and hasattr(value, '__len__'):
-			print('+++++ ' + name + ' (' + str(value.__len__()) + ') +++++')
-		else:
-			print('+++++ ' + name + ' +++++')
-		if value == None:
-			print("")
-		else:
-			print('\t' + str(value))
+		if not self.quiet:
+			if value != None and hasattr(value, '__len__'):
+				print('+++++ ' + name + ' (' + str(value.__len__()) + ') +++++')
+			else:
+				print('+++++ ' + name + ' +++++')
+			if value == None:
+				print("")
+			else:
+				print('\t' + str(value))

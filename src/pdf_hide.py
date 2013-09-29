@@ -56,6 +56,8 @@ def main():
 						help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding)")
 	parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False,
 						help="print debug messages")
+	parser.add_argument("-q", "--quiet", action="store_true", dest="debug", default=False,
+						help="do not print info messages")
 	args = parser.parse_args()
 	if args.action == "embed":
 		if select.select([sys.stdin,],[],[],0.0)[0]:
@@ -78,7 +80,7 @@ def main():
 			args.key = raw_input("Please enter stego-key:\n")
 		if args.red == None:
 			args.red = "0.1"
-		ps = PDF_stego(args.filename,args.debug,args.improve,args.red,args.nbits,args.customrange)
+		ps = PDF_stego(args.filename,args.debug,args.quiet,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.embed(args.msg,args.key,args.norandom))
 	elif args[0] == "extract":
 		if args.filename == None:
@@ -89,7 +91,7 @@ def main():
 			args.filename = "test.pdf.out.fix.pdf"
 		if args.key == None:
 			args.key = raw_input("Please enter derived-key:\n")
-		ps = PDF_stego(args.filename,args.debug,args.improve,args.red,args.nbits,args.customrange)
+		ps = PDF_stego(args.filename,args.debug,args.quiet,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.extract(args.key))
 	else:
 		parser.error("Please use command \"embed\" only or command \"extract\" only.")

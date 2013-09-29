@@ -45,12 +45,13 @@ PDFL=$(PDFL_B) $(PDFL_F)
 #
 # Names
 
-LATEX_1="part"$(TX)".1"
-LATEX_2="part"$(TX)".2"
+LATEX_1=part$(TX).1
+LATEX_2=part$(TX).2
 
-TXT_PARAG="lorem"$(TXT)
+TXT_PARAG=lorem$(TXT)
 
-OUT="test"
+OUT=test
+OUT_=test_long
 
 #
 #
@@ -58,14 +59,35 @@ OUT="test"
 # TARGETS
 #
 
-all:
+all: $(OUT)$(PDF) $(OUT_)$(PDF)
+
+$(OUT)$(TX): $(LATEX_1) $(LATEX_2) $(TXT_PARAG)
 	cat $(LATEX_1) > $(OUT)$(TX)
 	cat $(TXT_PARAG) >> $(OUT)$(TX)
 	cat $(LATEX_2) >> $(OUT)$(TX)
-	$(PDFL) $(OUT)$(TX)
+
+$(OUT_)$(TX): $(LATEX_1) $(LATEX_2) $(TXT_PARAG)
+	cat $(LATEX_1) > $(OUT_)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_)$(TX)
+	echo >> $(OUT_)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_)$(TX)
+	echo >> $(OUT_)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_)$(TX)
+	echo >> $(OUT_)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_)$(TX)
+	echo >> $(OUT_)$(TX)
+	cat $(LATEX_2) >> $(OUT_)$(TX)
+
+%$(PDF): %$(TX)
+	$(PDFL) $*
 
 #
 # Clean
 
-clean:
+clean: clean-base clean-long
+
+clean-base:
 	$(RM) $(OUT).*
+
+clean-long:
+	$(RM) $(OUT_).*

@@ -20,9 +20,24 @@ __version__ = "0.0a"
 # This is a straightforward implementation of chaotic maps
 #
 # Written by Nicolas Canceill
-# Last updated on Sept 28, 2013
+# Last updated on Sept 29, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
+
+#
+#
+#
+# STATIC
+#
+
+s_base = "../sample/test"
+s_long = "../sample/test_long"
+
+def print_begin(case):
+	print("========== BEGIN TEST " + case.upper() + " ==========")
+
+def print_end(case):
+	print("========== END TEST " + case.upper() + " ==========")
 
 #
 #
@@ -30,16 +45,81 @@ __version__ = "0.0a"
 # CLASSES
 #
 
-class DependenciesTestCase(unittest.TestCase):
+class AllDependenciesTestCase(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		print_begin('dependencies')
 	def test_dep_pdflatex(self):
 		self.assertEqual(os.system('which pdflatex > /dev/null'),0)
 	def test_dep_qpdf(self):
 		self.assertEqual(os.system('which qpdf > /dev/null'),0)
+	@classmethod
+	def tearDownClass(cls):
+		print_end('dependencies')
 
-class AlgoDefaultTestCase(unittest.TestCase):
+class DefaultAlgoTestCase(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		print_begin('algorithm (default)')
+		cls.defaultMessage = "123456ThisIsA\n=|__TEST__|="
+		cls.defaultKey = "S3cr3|-"
 	def test_algodef_embed(self):
-		ps = pdf_algo.PDF_stego("../sample/test.pdf",False,False,0.1,4,False)
-		self.assertTrue(ps.embed("123456ThisIsA=|__TEST__|=","S3cr3|-",False) > 0)
+		ps = pdf_algo.PDF_stego(s_base + ".pdf",False,True,False,0.1,4,False)
+		self.assertTrue(ps.embed(self.defaultMessage,self.defaultKey,False) > 0)
+	def test_algodef_extract(self):
+		ps = pdf_algo.PDF_stego(s_base + ".pdf.out.fix.pdf",False,True,False,0.1,4,False)
+		self.assertEqual(ps.extract(self.defaultKey), 0)
+	def test_algodef_resultchk(self):
+		output_file = open(s_base + ".pdf.out.fix.pdf.embd")
+		output = output_file.read()
+		output_file.close()
+		self.assertEqual(self.defaultMessage,output)
+	@classmethod
+	def tearDownClass(cls):
+		print_end('algorithm (default)')
+
+class SpecialAlgoTestCase(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		print_begin('algorithm (special)')
+		cls.defaultMessage = "123456ThisIsA\n=|__TEST__|="
+		cls.defaultKey = "S3cr3|-"
+	def test_algo_improve_embed(self):
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",False,True,True,0.1,4,False)
+		self.assertTrue(ps.embed(self.defaultMessage,self.defaultKey,False) > 0)
+	def test_algo_improve_extract(self):
+		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",False,True,True,0.1,4,False)
+		self.assertEqual(ps.extract(self.defaultKey), 0)
+	def test_algo_improve_resultchk(self):
+		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output = output_file.read()
+		output_file.close()
+		self.assertEqual(self.defaultMessage,output)
+	def test_algo_customred_embed(self):
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",False,True,False,0.736,4,False)
+		self.assertTrue(ps.embed(self.defaultMessage,self.defaultKey,False) > 0)
+	def test_algo_customred_extract(self):
+		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",False,True,False,0.736,4,False)
+		self.assertEqual(ps.extract(self.defaultKey), 0)
+	def test_algo_customred_resultchk(self):
+		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output = output_file.read()
+		output_file.close()
+		self.assertEqual(self.defaultMessage,output)
+	def test_algo_customnbit_embed(self):
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",False,True,False,0.1,7,False)
+		self.assertTrue(ps.embed(self.defaultMessage,self.defaultKey,False) > 0)
+	def test_algo_customnbit_extract(self):
+		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",False,True,False,0.1,7,False)
+		self.assertEqual(ps.extract(self.defaultKey), 0)
+	def test_algo_customnbit_resultchk(self):
+		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output = output_file.read()
+		output_file.close()
+		self.assertEqual(self.defaultMessage,output)
+	@classmethod
+	def tearDownClass(cls):
+		print_end('algorithm (special)')
 
 #
 #
