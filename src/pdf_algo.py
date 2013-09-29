@@ -2,9 +2,10 @@
 import re
 import random
 
-import pdf_drive
-import encoding
 import chaos
+import driver
+import encoding
+import logger
 
 #
 #
@@ -51,9 +52,6 @@ class PDF_stego:
 	# The number of bit to use
 	nbits = 4
 
-	# Debug logging flag
-	debug = False
-
 	# Improvements flag
 	improve = False
 
@@ -74,27 +72,25 @@ class PDF_stego:
 	tj_count = 0
 	tj_count_valid = 0
 
-	def __init__(self,input,debug,quiet,improve,red,nbits,customrange):
-		self.file_op = pdf_drive.PDF_file(input)
+	def __init__(self,input,log,improve,red,nbits,customrange):
+		self.file_op = driver.PDF_file(input)
 		self.improve = improve
-		self.debug = debug
-		self.quiet = quiet
+		self.l = log
 		self.redundancy = red
 		self.nbits = nbits
 		if self.improve:
 			self.customrange = customrange
 
 	def print_conf(self):
-		if self.debug:
-			print("\n===== CONFIG =====")
-			print("== input: \"" + self.file_op.file_name + ".qdf\"")
-			print("== redundancy: " + str(self.redundancy))
-			print("== bit depth: " + str(self.nbits))
-			if self.improve:
-				i = "YES"
-			else:
-				i = "NO"
-			print("== using improvements: " + i)
+		self.l.debug("\n===== CONFIG =====")
+		self.l.debug("== input: \"" + self.file_op.file_name + ".qdf\"")
+		self.l.debug("== redundancy: " + str(self.redundancy))
+		self.l.debug("== bit depth: " + str(self.nbits))
+		if self.improve:
+			i = "YES"
+		else:
+			i = "NO"
+		self.l.debug("== using improvements: " + i)
 
 	def get_tjs(self,line):
 		tjs = []
@@ -246,8 +242,8 @@ class PDF_stego:
 		self.tj_count = 0
 		self.tj_count_valid = 0
 		self.norandom = norandom
-		self.print_info("Key","\"" + passkey + "\"")
-		self.print_info("Embedding data, please wait...",None)
+		self.l.info("Key: \"" + passkey + "\"")
+		self.l.info("Embedding data, please wait...")
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf",encoding="iso-8859-1")
 		new_file = ""
@@ -268,10 +264,10 @@ class PDF_stego:
 			ind = list(map(lambda x: (x + jitter) % (2**self.nbits),ind))
 		else:
 			jitter = 0
-		self.print_debug('FlagStr1 (CheckStr)',nums[0])
-		self.print_debug('FlagStr2',nums[2])
-		self.print_debug('Data',n.msg_to_nums(data))
-		self.print_debug('Jitter',jitter)
+		self.l.debug(self.print_it('FlagStr1 (CheckStr)',nums[0]))
+		self.l.debug(self.print_it('FlagStr2',nums[2]))
+		self.l.debug(self.print_it('Data',n.msg_to_nums(data)))
+		self.l.debug(self.print_it('Jitter',jitter))
 		# Initiate chaotic maps
 		if self.improve:
 			ch_one = random.Random(n.digest(data))
@@ -282,7 +278,7 @@ class PDF_stego:
 		# Parse file
 		if 0:#self.improve: #TODO: fix
 			start = int(tjs.__len__() * ch_two.random())
-			self.print_debug("Random start position",start)
+			self.l.debug(self.print_it("Random start position",start))
 		else:
 			start = 0
 		i = 0
@@ -308,7 +304,7 @@ class PDF_stego:
 					k += m.start(1) + block[0].__len__()
 			new_file += line_
 		tjss_ = []
-		if self.debug:
+		if self.l.DEBUG:#TODO: do that better
 			cover_file.seek(0,0)
 			tjss = []
 			# Parse file
@@ -320,30 +316,30 @@ class PDF_stego:
 					tjss += self.get_tjs_signed(m.group(1))
 			tjss_ = tjss
 			if 0:#self.improve:
-				self.print_debug('TJ values before',tjss)
-				self.print_debug('Low-bits TJ values before',map(lambda x: abs(x) % (2**self.nbits),tjss))
-				self.print_debug("TJ average before",n.avg(tjss))
-				self.print_debug("TJ unsigned average before",n.avg(tjs))
+				self.l.debug(self.print_it('TJ values before',tjss))
+				self.l.debug(self.print_it('Low-bits TJ values before',map(lambda x: abs(x) % (2**self.nbits),tjss)))
+				self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
+				self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
 		cover_file.close()
 		if i < ind.__len__():
-			print("\nError: not enough space available (only " + str(self.tj_count_valid) + " available, " + str(ind.__len__()) + " needed).\n")
+			self.l.error("Not enough space available (only " + str(self.tj_count_valid) + " available, " + str(ind.__len__()) + " needed)")
 			return 0
 		else:
-			self.print_info("Done embedding.",None)
+			self.l.info("Done embedding.")
 			output_file = open(self.file_op.file_name + ".out","w")
 			output_file.write(new_file)
 			output_file.close()
-			output = pdf_drive.PDF_file(self.file_op.file_name + ".out")
+			output = driver.PDF_file(self.file_op.file_name + ".out")
 			output.fix()
-			output_fixed = pdf_drive.PDF_file(self.file_op.file_name + ".out.fix")
+			output_fixed = driver.PDF_file(self.file_op.file_name + ".out.fix")
 			output_fixed.compress()
-			self.print_info("Output file","\"" + self.file_op.file_name + ".out.fix.pdf\"")
-			self.print_debug("Embedded data","\"" + data + "\"")
-			self.print_debug("Total nb of TJ ops",self.tj_count)
-			self.print_debug("Total nb of TJ ops used",ind.__len__())
-			self.print_debug("Total nb of TJ ops used for data",nums[1].__len__())
-			if self.debug:
-				embd_file = open(self.file_op.file_name + ".out.fix")
+			self.l.info("Output file: \"" + self.file_op.file_name + ".out.fix.pdf\"")
+			self.l.debug(self.print_it("Embedded data","\"" + data + "\""))
+			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
+			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
+			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
+			if self.l.DEBUG:#TODO: do that better
+				embd_file = open(self.file_op.file_name + ".out.fix",encoding="iso-8859-1")
 				tjss = []
 				# Parse file
 				for line in embd_file:
@@ -365,7 +361,7 @@ class PDF_stego:
 						sbugs += ["@[" + str(i) + "] orig. " + str(tjss_[i]) + " | new " + str(tjss[i])]
 					i += 1
 				if sbugs.__len__() > 0:
-					self.print_debug("Sign bugs",sbugs)
+					self.l.debug(self.print_it("Sign bugs",sbugs))
 			return nums[1].__len__()
 
 	def extract_op(self,val,ch_two):
@@ -409,16 +405,16 @@ class PDF_stego:
 		self.print_conf()
 		self.tj_count = 0
 		self.tj_count_valid = 0
-		self.print_info("Key","\"" + derived_key + "\"")
-		self.print_info("Input file","\"" + self.file_op.file_name + "\"")
-		self.print_info("Extracting data, please wait...",None)
+		self.l.info("Key: \"" + derived_key + "\"")
+		self.l.info("Input file: \"" + self.file_op.file_name + "\"")
+		self.l.info("Extracting data, please wait...")
 		# Only works for valid PDF files
 		self.file_op.uncompress()
 		embedding_file = open(self.file_op.file_name + '.qdf',encoding="iso-8859-1")
 		n = encoding.Numerals(self.nbits)
 		# Get the numerals from the key
 		nums = n.encode_key(derived_key)
-		self.print_debug('FlagStr',nums)
+		self.l.debug(self.print_it('FlagStr',nums))
 		# Initiate chaotic map
 		if self.improve:
 			ch_two = random.Random(derived_key)
@@ -433,7 +429,7 @@ class PDF_stego:
 				if m != None:
 					tjs += self.get_tjs(m.group(1))
 			start = int(tjs.__len__() * ch_two.random())
-			self.print_debug("Random start position",start)
+			self.l.debug(self.print_it("Random start position",start))
 			embedding_file.seek(0,0)
 		else:
 			start = 0
@@ -452,7 +448,7 @@ class PDF_stego:
 				jitter = tjs[0] + 1
 			else:
 				jitter = tjs[0] - 1
-			self.print_debug("Jitter found",jitter)
+			self.l.debug(self.print_it("Jitter found",jitter))
 		else:
 			jitter = 0
 		# Jitter data
@@ -465,7 +461,7 @@ class PDF_stego:
 			# Look for end position
 			if nums == tjs_[k:k+20]:
 				end = k + 20 - 1
-				self.print_debug('End position found',end)
+				self.l.debug(self.print_it('End position found',end))
 				#length = end - start + 1
 				checkstr = tjs_[start:start + 20]
 				embedded = tjs_[start + 20:k]
@@ -473,7 +469,7 @@ class PDF_stego:
 			c += 1
 			k += 1
 		if c != tjs.__len__() + 1:
-			print("\nError: ending code FlagStr not found\n")
+			self.l.error("Ending code FlagStr not found")
 			return -1
 		else:
 			# Decode embedded data
@@ -484,8 +480,8 @@ class PDF_stego:
 				if k == embedded.__len__() - 1:
 					missing = -(bin_str.__len__() % 8) % 8
 					if missing > self.nbits:
-						print("\nError: ...\n") #TODO: message
-						self.print_debug("Raw data (corrupted)",embedded)
+						self.l.e("...") #TODO: message
+						self.l.debug(self.print_it("Raw data (corrupted)",embedded))
 						return -1
 					bin_str += bin[bin.__len__() - missing:]
 				else:
@@ -495,46 +491,36 @@ class PDF_stego:
 			emb_str = ""
 			for ch in emb_chars:
 				emb_str += ch
-			if self.debug:
-				self.print_debug('Data Checksum',n.encode_key(emb_str))
-				self.print_debug('CheckStr',checkstr)
-				self.print_debug('Data',embedded)
+			if self.l.DEBUG:#TODO: do that better
+				self.l.debug(self.print_it('Data Checksum',n.encode_key(emb_str)))
+				self.l.debug(self.print_it('CheckStr',checkstr))
+				self.l.debug(self.print_it('Data',embedded))
 			# Check integrity
 			if n.digest_to_nums(emb_str) != checkstr:
-				print("\nError: CheckStr does not match embedded data\n")
-				self.print_debug("Raw data (corrupted)",emb_str)
+				self.l.error("CheckStr does not match embedded data")
+				self.l.debug(self.print_it("Raw data (corrupted)",emb_str))
 				return -1
 			else:
-				self.print_info("Done Extracting.",None)
+				self.l.info("Done Extracting.")
 				output_file = open(self.file_op.file_name + ".embd","w")
 				output_file.write(emb_str)
 				output_file.close()
-				self.print_info("Output file","\"" + self.file_op.file_name + ".embd\"")
-				self.print_debug("Extracted data","\"" + emb_str + "\"")
-				self.print_debug("Total nb of TJ ops",self.tj_count)
-				self.print_debug("Total nb of valid TJ ops",self.tj_count_valid)
-				self.print_debug("Total nb of valid TJ ops used",embedded.__len__() + 40)
-				self.print_debug("Total nb of valid TJ ops used for data",embedded.__len__())
+				self.l.info("Output file: \"" + self.file_op.file_name + ".embd\"")
+				self.l.debug(self.print_it("Extracted data","\"" + emb_str + "\""))
+				self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
+				self.l.debug(self.print_it("Total nb of valid TJ ops",self.tj_count_valid))
+				self.l.debug(self.print_it("Total nb of valid TJ ops used",embedded.__len__() + 40))
+				self.l.debug(self.print_it("Total nb of valid TJ ops used for data",embedded.__len__()))
 				return 0
 
-	def print_debug(self,name,value):
-		if self.debug:
-			if value != None and hasattr(value, '__len__'):
-				print('===== ' + name + ' (' + str(value.__len__()) + ') =====')
-			else:
-				print('===== ' + name + ' =====')
-			if value == None:
-				print("")
-			else:
-				print('\t' + str(value))
-
-	def print_info(self,name,value):
-		if not self.quiet:
-			if value != None and hasattr(value, '__len__'):
-				print('+++++ ' + name + ' (' + str(value.__len__()) + ') +++++')
-			else:
-				print('+++++ ' + name + ' +++++')
-			if value == None:
-				print("")
-			else:
-				print('\t' + str(value))
+	def print_it(self,name,value):
+		ret = ""
+		if value != None and hasattr(value, '__len__'):
+			ret += name + ' (' + str(value.__len__()) + ')'
+		else:
+			ret += name
+		if value == None:
+			ret += ""
+		else:
+			ret += ('\t' + str(value))
+		return ret

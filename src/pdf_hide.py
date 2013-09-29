@@ -47,7 +47,9 @@ __version__ = "0.0a"
 #
 
 def main():
-	parser = argparse.ArgumentParser(prog="pdf_hide",formatter_class=argparse.RawDescriptionHelpFormatter,description=logger.MSG_DESC,epilog=logger.MSG_LICENSE)
+	# CLI
+	parser = argparse.ArgumentParser(prog="pdf_hide",formatter_class=argparse.RawDescriptionHelpFormatter,
+						description=logger.MSG_DESC,epilog=logger.MSG_LICENSE)
 	parser.add_argument("action",choices=["embed","extract"],
 						help="action to execute")
 	parser.add_argument("filename",default="test.pdf",
@@ -67,11 +69,16 @@ def main():
 	parser.add_argument("--custom-range", action="store_true", dest="customrange", default=False,
 						help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding)")
 	parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False,
-						help="print debug messages")
-	parser.add_argument("-q", "--quiet", action="store_true", dest="debug", default=False, #TODO: control verbosity with argparse count
-						help="do not print info messages")
+						help="enable debug output")
+	parser.add_argument("-v", "--verbose", action="count", dest="verbose", default=0,
+						help="set verbosity level")
+	parser.add_argument("-q", "--quiet", action="store_const", dest="verbose", const=-1,
+						help="force quiet output")
 	parser.add_argument("--version", action="version", version=logger.MSG_VERSION)
 	args = parser.parse_args()
+	# Log
+	rl = logger.rootLogger(args.verbose,args.debug)
+	# Exec
 	if args.action == "embed":
 		if select.select([sys.stdin,],[],[],0.0)[0]:#TODO: use argparse to do that
 			input = ""
@@ -85,12 +92,12 @@ def main():
 			args.key = raw_input("Please enter stego-key:\n")
 		if args.red == None:
 			args.red = "0.1"
-		ps = PDF_stego(args.filename,args.debug,args.quiet,args.improve,args.red,args.nbits,args.customrange)
+		ps = PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.embed(args.msg,args.key,args.norandom))
 	elif args[0] == "extract":
 		if args.key == None:
 			args.key = raw_input("Please enter derived-key:\n")
-		ps = PDF_stego(args.filename,args.debug,args.quiet,args.improve,args.red,args.nbits,args.customrange)
+		ps = PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.extract(args.key))
 
 if __name__ == '__main__':

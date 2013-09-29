@@ -41,13 +41,20 @@ __version__ = "0.0a"
 # STATIC
 #
 
+QUIET = -1
+ERROR = 0
+WARN = 1
+INFO = 1
+ALL = 2
+
 MSG_VERSION = "This is PDF_HIDE v" + __version__
-MSG_DESC = "A steganographic tool for hiding data inside PDF files"
+MSG_DESC = """A steganographic tool for hiding data inside PDF files
+Hosted at https://github.com/ncanceill/pdf_hide"""
 MSG_LICENSE = """PDF_HIDE  Copyright (C) 2013  Nicolas Canceill
 Distributed under GNU General Public License v3
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it under certain conditions.
-Please see LICENSE.md or http://www.gnu.org/licenses/"""
+Please see LICENSE.md or http://www.gnu.org/licenses/ for details."""
 
 #
 #
@@ -56,15 +63,32 @@ Please see LICENSE.md or http://www.gnu.org/licenses/"""
 #
 
 class rootLogger:
-	DEBUG = False
-	VERBOSE = 0
+	def __init__(self,verbose=0,debug=False):
+		self.VERBOSE = verbose
+		self.DEBUG = debug
 
-	def print_splash(parser):
-		if VERBOSE >= 0 : print("====================")
+	def print_splash(self,parser):
+		print("====================")
 		print(MSG_VERSION)
-		if VERBOSE >= 0 : print("====================")
+		print("====================")
 
-	def print_discl(parser):
-		if VERBOSE >= 0 : print("====================")
+	def print_discl(self,parser):
+		print("====================")
 		print(MSG_LICENSE)
-		if VERBOSE >= 0 : print("====================")
+		print("====================")
+
+	def error(self,msg):
+		if self.VERBOSE >= ERROR:
+			print("ERROR:\t" + msg)
+
+	def warn(self,msg):
+		if self.VERBOSE >= WARN:
+			print("WARN:\t" + msg)
+
+	def info(self,msg):
+		if self.VERBOSE >= INFO:
+			print("INFO:\t" + msg)
+
+	def debug(self,msg):
+		if self.DEBUG:
+			print("DEBUG:\t" + msg)
