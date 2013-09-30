@@ -43,6 +43,11 @@ __version__ = "0.0a"
 
 LOG_FORMAT = "%(levelname)s:	%(message)s"
 
+CRITICAL=-1
+ERROR=0
+INFO=1
+DEBUG=2
+
 MSG_VERSION = "This is PDF_HIDE v" + __version__
 MSG_DESC = """A steganographic tool for hiding data inside PDF files
 Hosted at https://github.com/ncanceill/pdf_hide"""
@@ -59,17 +64,18 @@ Please see LICENSE.md or http://www.gnu.org/licenses/ for details."""
 #
 
 class rootLogger:
-	def __init__(self,verbose=0,debug=False):
-		self.DEBUG = debug
+	def __init__(self,verbose=0):
 		logging.basicConfig(format=LOG_FORMAT)
-		if verbose == -1:
+		if verbose == CRITICAL:
 			logging.getLogger().setLevel(logging.CRITICAL)
-		if verbose == 0:
+		elif verbose == ERROR:
 			logging.getLogger().setLevel(logging.ERROR)
-		if verbose == 1:
+		elif verbose == INFO:
 			logging.getLogger().setLevel(logging.INFO)
-		if verbose == 2:
+		self.DEBUG = False
+		if verbose == DEBUG:
 			logging.getLogger().setLevel(logging.DEBUG)
+			self.DEBUG=True
 
 	def print_splash(self,parser):
 		print("====================")

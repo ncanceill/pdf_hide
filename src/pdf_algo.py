@@ -72,7 +72,7 @@ class PDF_stego:
 	tj_count = 0
 	tj_count_valid = 0
 
-	def __init__(self,input,log,improve,red,nbits,customrange):
+	def __init__(self,input,log,improve=False,red=0.1,nbits=4,customrange=False):
 		self.file_op = driver.PDF_file(input)
 		self.improve = improve
 		self.l = log
@@ -237,7 +237,7 @@ class PDF_stego:
 	# Embeds data with passkey in a PDF file "<file>", outputs stego PDF file "<file>.out.fix.pdf"
 	#
 	# Returns the number of embedded numerals constituting the data
-	def embed(self,data,passkey,norandom):
+	def embed(self,data,passkey,norandom=False):
 		self.print_conf()
 		self.tj_count = 0
 		self.tj_count_valid = 0
@@ -480,7 +480,7 @@ class PDF_stego:
 				if k == embedded.__len__() - 1:
 					missing = -(bin_str.__len__() % 8) % 8
 					if missing > self.nbits:
-						self.l.e("...") #TODO: message
+						self.l.error("...") #TODO: message
 						self.l.debug(self.print_it("Raw data (corrupted)",embedded))
 						return -1
 					bin_str += bin[bin.__len__() - missing:]

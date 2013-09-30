@@ -75,7 +75,7 @@ def main():
 	parser.add_argument("--version", action="version", version=logger.MSG_VERSION)
 	args = parser.parse_args()
 	# Log
-	rl = logger.rootLogger(args.verbose,args.debug)
+	rl = logger.rootLogger(args.verbose)
 	# Exec
 	if args.action == "embed":
 		if select.select([sys.stdin,],[],[],0.0)[0]:#TODO: use argparse to do that
