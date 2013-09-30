@@ -49,7 +49,7 @@ s_base = "../sample/test"
 s_long = "../sample/test_long"
 
 # Log
-rl = logger.rootLogger(logger.QUIET,False)
+rl = logger.rootLogger(-1,False)
 
 def print_begin(case):
 	print("========== BEGIN TEST " + case.upper() + " ==========")

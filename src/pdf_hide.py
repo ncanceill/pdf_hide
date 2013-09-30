@@ -68,8 +68,6 @@ def main():
 						help="do not embed random values, keep original ones (ignored if extracting)")
 	parser.add_argument("--custom-range", action="store_true", dest="customrange", default=False,
 						help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding)")
-	parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False,
-						help="enable debug output")
 	parser.add_argument("-v", "--verbose", action="count", dest="verbose", default=0,
 						help="set verbosity level")
 	parser.add_argument("-q", "--quiet", action="store_const", dest="verbose", const=-1,

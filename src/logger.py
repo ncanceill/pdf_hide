@@ -41,11 +41,7 @@ __version__ = "0.0a"
 # STATIC
 #
 
-QUIET = -1
-ERROR = 0
-WARN = 1
-INFO = 1
-ALL = 2
+LOG_FORMAT = "%(levelname)s:	%(message)s"
 
 MSG_VERSION = "This is PDF_HIDE v" + __version__
 MSG_DESC = """A steganographic tool for hiding data inside PDF files
@@ -64,8 +60,16 @@ Please see LICENSE.md or http://www.gnu.org/licenses/ for details."""
 
 class rootLogger:
 	def __init__(self,verbose=0,debug=False):
-		self.VERBOSE = verbose
 		self.DEBUG = debug
+		logging.basicConfig(format=LOG_FORMAT)
+		if verbose == -1:
+			logging.getLogger().setLevel(logging.CRITICAL)
+		if verbose == 0:
+			logging.getLogger().setLevel(logging.ERROR)
+		if verbose == 1:
+			logging.getLogger().setLevel(logging.INFO)
+		if verbose == 2:
+			logging.getLogger().setLevel(logging.DEBUG)
 
 	def print_splash(self,parser):
 		print("====================")
@@ -77,18 +81,17 @@ class rootLogger:
 		print(MSG_LICENSE)
 		print("====================")
 
+	def critical(self,msg):
+		logging.critical(msg)
+
 	def error(self,msg):
-		if self.VERBOSE >= ERROR:
-			print("ERROR:\t" + msg)
+		logging.error(msg)
 
 	def warn(self,msg):
-		if self.VERBOSE >= WARN:
-			print("WARN:\t" + msg)
+		logging.warning(msg)
 
 	def info(self,msg):
-		if self.VERBOSE >= INFO:
-			print("INFO:\t" + msg)
+		logging.info(msg)
 
 	def debug(self,msg):
-		if self.DEBUG:
-			print("DEBUG:\t" + msg)
+		logging.debug(msg)
