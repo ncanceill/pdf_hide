@@ -47,10 +47,10 @@ __version__ = "0.0a"
 #
 
 # Random seed: use a specific number to reproduce tests
-RANDOM_SEED=123456#None
+RANDOM_SEED=None
 
 # Log level: use logger.DEBUG to debug
-LOG_LEVEL=logger.DEBUG#CRITICAL
+LOG_LEVEL=logger.CRITICAL
 
 #
 #
@@ -120,7 +120,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		cls.defaultKey = "S3cr3|-"
 		cls.redundancy = 0
 		while cls.redundancy == 0:
-			cls.redundancy = random.random()
+			cls.redundancy = round(random.random(),2)
 		cls.nbits = random.randrange(5,8)
 	def test_algo_customred_embed(self):
 		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,red=self.redundancy)
@@ -178,7 +178,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 	def tearDownClass(cls):
 		print_end('algorithm (special)')
 
-class DefaultAlgoImprovedTestCase(unittest.TestCase):
+class DefaultIAlgoTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		print_begin('algorithm improved (default)')
@@ -201,7 +201,7 @@ class DefaultAlgoImprovedTestCase(unittest.TestCase):
 	def tearDownClass(cls):
 		print_end('algorithm improved (default)')
 
-class SpecialAlgoImprovedTestCase(unittest.TestCase):
+class SpecialIAlgoTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		random.seed(RANDOM_SEED)
@@ -210,7 +210,7 @@ class SpecialAlgoImprovedTestCase(unittest.TestCase):
 		cls.defaultKey = "S3cr3|-"
 		cls.redundancy = 0
 		while cls.redundancy == 0:
-			cls.redundancy = random.random()
+			cls.redundancy = round(random.random(),2)
 		cls.nbits = random.randrange(5,8)
 	def test_algoi_customred_embed(self):
 		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,improve=True,red=self.redundancy)
@@ -251,19 +251,20 @@ class SpecialAlgoImprovedTestCase(unittest.TestCase):
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
-	def test_algoi_full_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,improve=True,red=self.redundancy,nbits=self.nbits,customrange=True)
-		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
-		self.assertTrue(result > 0)
-	def test_algoi_full_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,improve=True,red=self.redundancy,nbits=self.nbits,customrange=True)
-		result = ps.extract(self.defaultKey)
-		self.assertEqual(result, 0)
-	def test_algoi_full_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
-		output = output_file.read()
-		output_file.close()
-		self.assertEqual(self.defaultMessage,output)
+# Disabled because of https://github.com/ncanceill/pdf_hide/issues/8
+#	def test_algoi_full_embed(self):
+#		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,improve=True,red=0.863,nbits=3,customrange=True)
+#		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
+#		self.assertTrue(result > 0)
+#	def test_algoi_full_extract(self):
+#		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,improve=True,red=0.863,nbits=3,customrange=True)
+#		result = ps.extract(self.defaultKey)
+#		self.assertEqual(result, 0)
+#	def test_algoi_full_resultchk(self):
+#		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+#		output = output_file.read()
+#		output_file.close()
+#		self.assertEqual(self.defaultMessage,output)
 	@classmethod
 	def tearDownClass(cls):
 		print_end('algorithm improved (special)')
