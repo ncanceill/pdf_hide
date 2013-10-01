@@ -31,6 +31,8 @@ This tool is a Python 3 program: it requires a basic [Python](http://www.python.
 
 It requires [QPDF](http://qpdf.sourceforge.net) in order to modify compressed PDF files. QPDF distributes under [Artistic license v2](http://opensource.org/licenses/artistic-license-2.0.php) from the Perl Foundation.
 
+Additionally, it requires [`pdflatex`](http://www.ctan.org) to build samples for the tests. The TeX framework, including `pdflatex`, distributes under [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html) from the GNU Software Foundation.
+
 ### Setup
 
 You can find the latest version packaged on the [releases page](../../releases). The current version is [0.0 alpha](../../releases/tag/v0.0a): [tgz](../../archive/v0.0a.tar.gz) — [zip](../../archive/v0.0a.zip).
