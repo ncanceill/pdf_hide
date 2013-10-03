@@ -73,16 +73,16 @@ class rootLogger:
 		elif verbose == INFO:
 			logging.getLogger().setLevel(logging.INFO)
 		self.DEBUG = False
-		if verbose == DEBUG:
+		if verbose >= DEBUG:
 			logging.getLogger().setLevel(logging.DEBUG)
 			self.DEBUG=True
 
-	def print_splash(self,parser):
+	def print_splash(self):
 		print("====================")
 		print(MSG_VERSION)
 		print("====================")
 
-	def print_discl(self,parser):
+	def print_discl(self):
 		print("====================")
 		print(MSG_LICENSE)
 		print("====================")

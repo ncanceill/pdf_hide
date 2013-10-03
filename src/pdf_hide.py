@@ -77,24 +77,34 @@ def main():
 	# Log
 	rl = logger.rootLogger(args.verbose)
 	# Exec
+	if args.verbose >= 0:
+		rl.print_splash()
 	if args.action == "embed":
 		if select.select([sys.stdin,],[],[],0.0)[0]:#TODO: use argparse to do that
-			input = ""
+			inputt = ""
 			for line in sys.stdin:
-				if input.__len__() > 0:
-					input += "\n"
-				input += line
+				if inputt.__len__() > 0:
+					inputt += "\n"
+				inputt += line
 			sys.stdin = open("/dev/tty")
-			args.msg = input
+			args.msg = inputt
 		if args.key == None:
 			args.key = input("PDF_HIDE: Please enter stego-key:\n")
-		ps = PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
-		exit(ps.embed(args.msg,args.key,args.norandom))
-	elif args[0] == "extract":
+		ps = pdf_algo.PDF_stego(args.filename,rl,improve=args.improve,red=args.red,nbits=args.nbits,customrange=args.customrange)
+		result = ps.embed(args.msg,args.key,norandom=args.norandom)
+		if args.verbose >= 0:
+			rl.print_discl()
+		if result > 0:
+			exit(0)
+		exit(result)
+	elif args.action == "extract":
 		if args.key == None:
 			args.key = input("PDF_HIDE: Please enter derived-key:\n")
-		ps = PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
-		exit(ps.extract(args.key))
+		ps = pdf_algo.PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
+		result = ps.extract(args.key)
+		if args.verbose >= 0:
+			rl.print_discl()
+		exit(result)
 
 if __name__ == '__main__':
     main()
