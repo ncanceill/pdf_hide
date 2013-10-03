@@ -87,14 +87,12 @@ def main():
 			sys.stdin = open("/dev/tty")
 			args.msg = input
 		if args.key == None:
-			args.key = raw_input("Please enter stego-key:\n")
-		if args.red == None:
-			args.red = "0.1"
+			args.key = input("PDF_HIDE: Please enter stego-key:\n")
 		ps = PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.embed(args.msg,args.key,args.norandom))
 	elif args[0] == "extract":
 		if args.key == None:
-			args.key = raw_input("Please enter derived-key:\n")
+			args.key = input("PDF_HIDE: Please enter derived-key:\n")
 		ps = PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
 		exit(ps.extract(args.key))
 
