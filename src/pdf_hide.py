@@ -68,9 +68,10 @@ def main():
 						help="do not embed random values, keep original ones (ignored if extracting)")
 	parser.add_argument("--custom-range", action="store_true", dest="customrange", default=False,
 						help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding)")
-	parser.add_argument("-v", "--verbose", action="count", dest="verbose", default=0,
+	group_verb = parser.add_mutually_exclusive_group()
+	group_verb.add_argument("-v", "--verbose", action="count", dest="verbose", default=0,
 						help="set verbosity level")
-	parser.add_argument("-q", "--quiet", action="store_const", dest="verbose", const=-1,
+	group_verb.add_argument("-q", "--quiet", action="store_const", dest="verbose", const=-1,
 						help="force quiet output")
 	parser.add_argument("--version", action="version", version=logger.MSG_VERSION)
 	args = parser.parse_args()
