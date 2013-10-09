@@ -59,8 +59,8 @@ def main():
 						help="use KEY as the stego-key", metavar="KEY")
 	# CLI - Embedding
 	parser_embed = subparsers.add_parser("embed", help="Embed message inside PDF file")
-	parser_embed.add_argument("-m", "--message", dest="msg",
-						help="use MESSAGE as the data to embed", metavar="MESSAGE")
+	parser_embed.add_argument("data", type=argparse.FileType(),
+						help="the data file to embed (or stdin)")
 	parser_embed.add_argument("--no-random", action="store_true", dest="norandom", default=False,
 						help="do not embed random values, keep original ones")
 	# CLI - Extracting
@@ -92,18 +92,10 @@ def main():
 	if args.verbose >= 0:
 		rl.print_splash()
 	if args.action == "embed":
-		if select.select([sys.stdin,],[],[],0.0)[0]:#TODO: use argparse to do that
-			inputt = ""
-			for line in sys.stdin:
-				if inputt.__len__() > 0:
-					inputt += "\n"
-				inputt += line
-			sys.stdin = open("/dev/tty")
-			args.msg = inputt
 		if args.key == None:
 			args.key = input("PDF_HIDE: Please enter stego-key:\n")
 		ps = pdf_algo.PDF_stego(args.filename,rl,improve=args.improve,red=args.red,nbits=args.nbits,customrange=args.customrange)
-		result = ps.embed(args.msg,args.key,norandom=args.norandom)
+		result = ps.embed(args.data.read(),args.key,norandom=args.norandom)
 		if args.verbose >= 0:
 			rl.print_discl()
 		if result > 0:
