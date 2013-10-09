@@ -501,7 +501,7 @@ class PDF_stego:
 				self.l.debug(self.print_it("Raw data (corrupted)",emb_str))
 				return -1
 			else:
-				self.l.info("Done Extracting.")
+				self.l.info("Done extracting.")
 				output_file = open(self.file_op.file_name + ".embd","w")
 				output_file.write(emb_str)
 				output_file.close()
