@@ -48,18 +48,20 @@ __version__ = "0.0a"
 
 def main():
 	# CLI
-	parser = argparse.ArgumentParser(prog="pdf_hide",formatter_class=argparse.RawDescriptionHelpFormatter,
-						description=logger.MSG_DESC,epilog=logger.MSG_LICENSE)
-	parser.add_argument("action",choices=["embed","extract"],
-						help="action to execute")
-	parser.add_argument("filename",default="test.pdf",
+	parser = argparse.ArgumentParser(prog="pdf_hide", formatter_class=argparse.RawDescriptionHelpFormatter,
+						description=logger.MSG_DESC, epilog=logger.MSG_LICENSE)
+	subparsers = parser.add_subparsers(title="Actions", dest="action",
+									   help="action to execute")
+	parser_embed = subparsers.add_parser("embed", help="Embed message inside PDF file")
+	parser_extract = subparsers.add_parser("extract", help="Extract message from PDF file")
+	parser.add_argument("filename",
 						help="PDF file (may be compressed) to use as input")
 	parser.add_argument("-k", "--key", dest="key",
-					  help="use KEY as the stego-key", metavar="KEY")
-	parser.add_argument("-m", "--message", dest="msg",
-					  help="use MESSAGE as the data to embed (ignored if extracting)", metavar="MESSAGE")
+						help="use KEY as the stego-key", metavar="KEY")
+	parser_embed.add_argument("-m", "--message", dest="msg",
+						help="use MESSAGE as the data to embed", metavar="MESSAGE")
 	parser.add_argument("-n", "--nbits", dest="nbits", action="store", type=int, default=4,
-					  help="use NBITS as the number of bits to use for numerals", metavar="NBITS")
+						help="use NBITS as the number of bits to use for numerals", metavar="NBITS")
 	parser.add_argument("-r", "--redundancy", dest="red", action="store", type=float, default=0.1,
 						help="use RED as the redundancy parameter (strictly between 0 and 1)", metavar="RED")
 	parser.add_argument("-i", "--improve", action="store_true", dest="improve", default=False,
