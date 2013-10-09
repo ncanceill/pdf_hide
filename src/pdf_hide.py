@@ -2,6 +2,7 @@
 import sys
 import select
 import argparse
+import getpass
 
 import logger
 import pdf_algo
@@ -71,7 +72,7 @@ def main():
 						help="use NBITS as the number of bits to use for numerals", metavar="NBITS")
 	group_options.add_argument("-r", "--redundancy", dest="red", action="store", type=float, default=0.1,
 						help="use RED as the redundancy parameter (strictly between 0 and 1)", metavar="RED")
-	# CLI - Improvements
+	# CLI - Improvements #TODO: clean that up
 	parser.add_argument("-i", "--improve", action="store_true", dest="improve", default=False,
 						help="use algo improvements")
 	parser.add_argument("--custom-range", action="store_true", dest="customrange", default=False,
@@ -93,7 +94,7 @@ def main():
 		rl.print_splash()
 	if args.action == "embed":
 		if args.key == None:
-			args.key = input("PDF_HIDE: Please enter stego-key:\n")
+			args.key = getpass.getpass("Please enter stego-key: ")
 		ps = pdf_algo.PDF_stego(args.filename,rl,improve=args.improve,red=args.red,nbits=args.nbits,customrange=args.customrange)
 		result = ps.embed(args.data.read(),args.key,norandom=args.norandom)
 		if args.verbose >= 0:
@@ -103,7 +104,7 @@ def main():
 		exit(result)
 	elif args.action == "extract":
 		if args.key == None:
-			args.key = input("PDF_HIDE: Please enter derived-key:\n")
+			args.key = getpass.getpass("Please enter derived-key: ")
 		ps = pdf_algo.PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
 		result = ps.extract(args.key)
 		if args.verbose >= 0:

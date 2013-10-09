@@ -242,7 +242,6 @@ class PDF_stego:
 		self.tj_count = 0
 		self.tj_count_valid = 0
 		self.norandom = norandom
-		self.l.info("Key: \"" + passkey + "\"")
 		self.l.info("Embedding data, please wait...")
 		self.file_op.uncompress()
 		cover_file = open(self.file_op.file_name + ".qdf",encoding="iso-8859-1")
@@ -405,7 +404,6 @@ class PDF_stego:
 		self.print_conf()
 		self.tj_count = 0
 		self.tj_count_valid = 0
-		self.l.info("Key: \"" + derived_key + "\"")
 		self.l.info("Input file: \"" + self.file_op.file_name + "\"")
 		self.l.info("Extracting data, please wait...")
 		# Only works for valid PDF files
