@@ -293,6 +293,11 @@ class PDF_stego:
 					k += m.start(1) + block[0].__len__()
 			new_file += line_
 		tjss_ = []
+		#
+		#
+		# BEGIN DEBUG CHECKS
+		#
+		#
 		if self.l.DEBUG:#TODO: do that better
 			cover_file.seek(0,0)
 			tjss = []
@@ -304,11 +309,16 @@ class PDF_stego:
 					tjs += self.get_tjs(m.group(1))
 					tjss += self.get_tjs_signed(m.group(1))
 			tjss_ = tjss
-			if 0:#self.improve:
-				self.l.debug(self.print_it("TJ values before",tjss))
-				self.l.debug(self.print_it("Low-bits TJ values before",map(lambda x: abs(x) % (2**self.nbits),tjss)))
-				self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
-				self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
+			#if 0:#self.improve:
+			#	self.l.debug(self.print_it("TJ values before",tjss))
+			#	self.l.debug(self.print_it("Low-bits TJ values before",map(lambda x: abs(x) % (2**self.nbits),tjss)))
+			#	self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
+			#	self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
+		#
+		#
+		# END DEBUG CHECKS
+		#
+		#
 		cover_file.close()
 		driver.delete(self.input+".qdf")
 		if i < ind.__len__():
@@ -322,6 +332,11 @@ class PDF_stego:
 			driver.fix(self.output+".raw",self.output+".fix")
 			driver.delete(self.output+".raw")
 			driver.compress(self.output+".fix",self.output)
+			#
+			#
+			# BEGIN DEBUG CHECKS
+			#
+			#
 			if self.l.DEBUG:#TODO: do that better
 				embd_file = open(self.output+".fix",encoding="iso-8859-1")
 				tjss = []
@@ -350,6 +365,11 @@ class PDF_stego:
 			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
 			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
 			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
+			#
+			#
+			# END DEBUG CHECKS
+			#
+			#
 			driver.delete(self.output+".fix")
 			self.l.info("Output file: \"" + self.output + "\"")
 			return nums[1].__len__()
@@ -481,10 +501,20 @@ class PDF_stego:
 			emb_str = ""
 			for ch in emb_chars:
 				emb_str += ch
+			#
+			#
+			# BEGIN DEBUG CHECKS
+			#
+			#
 			if self.l.DEBUG:#TODO: do that better
 				self.l.debug(self.print_it('Data Checksum',n.encode_key(emb_str)))
 				self.l.debug(self.print_it('CheckStr',checkstr))
 				self.l.debug(self.print_it('Data',embedded))
+			#
+			#
+			# END DEBUG CHECKS
+			#
+			#
 			# Check integrity
 			if n.digest_to_nums(emb_str) != checkstr:
 				self.l.error("CheckStr does not match embedded data")
