@@ -38,24 +38,17 @@ __version__ = "0.0a"
 #
 #
 #
-# CLASSES
+# FUNCTIONS
 #
 
-class PDF_file:
+# Generates QDF file from PDF file, uncompressing streams if needed
+def uncompress(input,output):
+	os.system('qpdf '+input+' '+output+' --qdf --stream-data=uncompress')
 
-	file_name = ''
+# Generates fixed QDF  file from damaged QDF file, reconstructing XRef and trailer if needed
+def fix(input,output):
+	os.system('fix-qdf <'+input+' >'+output)
 
-	def __init__(self,file_name):
-		self.file_name = file_name
-
-	# Generates QDF file "<file>.qdf" from PDF file "<file>", uncompressing streams if needed
-	def uncompress(self):
-		os.system('qpdf '+self.file_name+' '+self.file_name+'.qdf --qdf --stream-data=uncompress')
-
-	# Generates fixed QDF  file "<file>.fix" from damaged QDF file "<file>", reconstructing XRef and trailer if needed
-	def fix(self):
-		os.system('fix-qdf <'+self.file_name+' >'+self.file_name+'.fix')
-
-	# Generates PDF file "<file>.pdf" from QDF or PDF file "<file>", compressing streams if needed
-	def compress(self):
-		os.system('qpdf '+self.file_name+' '+self.file_name+'.pdf --stream-data=compress')
+# Generates PDF file from QDF or PDF file, compressing streams if needed
+def compress(input,output):
+	os.system('qpdf '+input+' '+output+' --stream-data=compress')

@@ -72,8 +72,9 @@ class PDF_stego:
 	tj_count = 0
 	tj_count_valid = 0
 
-	def __init__(self,input,log,improve=False,red=0.1,nbits=4,customrange=False):
-		self.file_op = driver.PDF_file(input)
+	def __init__(self,input,log,output="a.out",improve=False,red=0.1,nbits=4,customrange=False):
+		self.input = input
+		self.output = output
 		self.improve = improve
 		self.l = log
 		self.redundancy = red
@@ -83,7 +84,7 @@ class PDF_stego:
 
 	def print_conf(self):
 		self.l.debug("\n===== CONFIG =====")
-		self.l.debug("== input: \"" + self.file_op.file_name + ".qdf\"")
+		self.l.debug("== input: \"" + self.output + ".qdf\"")
 		self.l.debug("== redundancy: " + str(self.redundancy))
 		self.l.debug("== bit depth: " + str(self.nbits))
 		if self.improve:
@@ -234,7 +235,7 @@ class PDF_stego:
 				k += m.start(1) + str(op[1]).__len__()
 		return [newline,i_,j_]
 
-	# Embeds data with passkey in a PDF file "<file>", outputs stego PDF file "<file>.out.fix.pdf"
+	# Embeds data with passkey in a PDF file, outputs stego PDF file
 	#
 	# Returns the number of embedded numerals constituting the data
 	def embed(self,data,passkey,norandom=False):
@@ -243,8 +244,8 @@ class PDF_stego:
 		self.tj_count_valid = 0
 		self.norandom = norandom
 		self.l.info("Embedding data, please wait...")
-		self.file_op.uncompress()
-		cover_file = open(self.file_op.file_name + ".qdf",encoding="iso-8859-1")
+		driver.uncompress(self.input,self.input+".qdf")
+		cover_file = open(self.input + ".qdf",encoding="iso-8859-1")
 		new_file = ""
 		n = encoding.Numerals(self.nbits)
 		# Get the numerals to embed from the key and the message
@@ -263,10 +264,10 @@ class PDF_stego:
 			ind = list(map(lambda x: (x + jitter) % (2**self.nbits),ind))
 		else:
 			jitter = 0
-		self.l.debug(self.print_it('FlagStr1 (CheckStr)',nums[0]))
-		self.l.debug(self.print_it('FlagStr2',nums[2]))
-		self.l.debug(self.print_it('Data',n.msg_to_nums(data)))
-		self.l.debug(self.print_it('Jitter',jitter))
+		self.l.debug(self.print_it("FlagStr1 (CheckStr)",nums[0]))
+		self.l.debug(self.print_it("FlagStr2",nums[2]))
+		self.l.debug(self.print_it("Data",n.msg_to_nums(data)))
+		self.l.debug(self.print_it("Jitter",jitter))
 		# Initiate chaotic maps
 		if self.improve:
 			ch_one = random.Random(n.digest(data))
@@ -315,8 +316,8 @@ class PDF_stego:
 					tjss += self.get_tjs_signed(m.group(1))
 			tjss_ = tjss
 			if 0:#self.improve:
-				self.l.debug(self.print_it('TJ values before',tjss))
-				self.l.debug(self.print_it('Low-bits TJ values before',map(lambda x: abs(x) % (2**self.nbits),tjss)))
+				self.l.debug(self.print_it("TJ values before",tjss))
+				self.l.debug(self.print_it("Low-bits TJ values before",map(lambda x: abs(x) % (2**self.nbits),tjss)))
 				self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
 				self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
 		cover_file.close()
@@ -325,20 +326,18 @@ class PDF_stego:
 			return 0
 		else:
 			self.l.info("Done embedding.")
-			output_file = open(self.file_op.file_name + ".out","w")
+			output_file = open(self.output,"w")
 			output_file.write(new_file)
 			output_file.close()
-			output = driver.PDF_file(self.file_op.file_name + ".out")
-			output.fix()
-			output_fixed = driver.PDF_file(self.file_op.file_name + ".out.fix")
-			output_fixed.compress()
-			self.l.info("Output file: \"" + self.file_op.file_name + ".out.fix.pdf\"")
+			driver.fix(self.output,self.output+".fix")
+			driver.compress(self.ouput+".fix",self.output)
+			self.l.info("Output file: \"" + output + "\"")
 			self.l.debug(self.print_it("Embedded data","\"" + data + "\""))
 			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
 			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
 			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
 			if self.l.DEBUG:#TODO: do that better
-				embd_file = open(self.file_op.file_name + ".out.fix",encoding="iso-8859-1")
+				embd_file = open(self.output+".fix",encoding="iso-8859-1")
 				tjss = []
 				# Parse file
 				for line in embd_file:
@@ -349,10 +348,10 @@ class PDF_stego:
 						tjss += self.get_tjs_signed(m.group(1))
 				embd_file.close()
 				if 0:#self.improve:
-					self.print_debug('TJ values after',tjss)
-					self.print_debug('Low-bits TJ values after',map(lambda x: abs(x) % (2**self.nbits),tjss))
-					self.print_debug('TJ average after',n.avg(tjss))
-					self.print_debug('TJ unsigned average after',n.avg(tjs))
+					self.print_debug("TJ values after",tjss)
+					self.print_debug("Low-bits TJ values after",map(lambda x: abs(x) % (2**self.nbits),tjss))
+					self.print_debug("TJ average after",n.avg(tjss))
+					self.print_debug("TJ unsigned average after",n.avg(tjs))
 				i = 0
 				sbugs = []
 				while i < tjss.__len__():
@@ -399,20 +398,20 @@ class PDF_stego:
 				k += m.end(1)
 		return tjs
 
-	# Extracts data from PDF file "<file>" using derived_key, outputs extracted data to "<file>.embd"
+	# Extracts data from PDF file using derived_key, outputs extracted data to
 	def extract(self,derived_key):
 		self.print_conf()
 		self.tj_count = 0
 		self.tj_count_valid = 0
-		self.l.info("Input file: \"" + self.file_op.file_name + "\"")
+		self.l.info("Input file: \"" + self.input + "\"")
 		self.l.info("Extracting data, please wait...")
 		# Only works for valid PDF files
-		self.file_op.uncompress()
-		embedding_file = open(self.file_op.file_name + '.qdf',encoding="iso-8859-1")
+		driver.uncompress(self.input,self.input+".qdf")
+		embedding_file = open(self.input+".qdf",encoding="iso-8859-1")
 		n = encoding.Numerals(self.nbits)
 		# Get the numerals from the key
 		nums = n.encode_key(derived_key)
-		self.l.debug(self.print_it('FlagStr',nums))
+		self.l.debug(self.print_it("FlagStr",nums))
 		# Initiate chaotic map
 		if self.improve:
 			ch_two = random.Random(derived_key)
@@ -500,10 +499,10 @@ class PDF_stego:
 				return -1
 			else:
 				self.l.info("Done extracting.")
-				output_file = open(self.file_op.file_name + ".embd","w")
+				output_file = open(self.output,"w")
 				output_file.write(emb_str)
 				output_file.close()
-				self.l.info("Output file: \"" + self.file_op.file_name + ".embd\"")
+				self.l.info("Output file: \"" + self.output + ".embd\"")
 				self.l.debug(self.print_it("Extracted data","\"" + emb_str + "\""))
 				self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
 				self.l.debug(self.print_it("Total nb of valid TJ ops",self.tj_count_valid))
