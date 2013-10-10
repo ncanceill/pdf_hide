@@ -82,17 +82,6 @@ class PDF_stego:
 		if self.improve:
 			self.customrange = customrange
 
-	def print_conf(self):
-		self.l.debug("\n===== CONFIG =====")
-		self.l.debug("== input: \"" + self.output + ".qdf\"")
-		self.l.debug("== redundancy: " + str(self.redundancy))
-		self.l.debug("== bit depth: " + str(self.nbits))
-		if self.improve:
-			i = "YES"
-		else:
-			i = "NO"
-		self.l.debug("== using improvements: " + i)
-
 	def get_tjs(self,line):
 		tjs = []
 		k = 0
@@ -521,3 +510,14 @@ class PDF_stego:
 		else:
 			ret += ('\t' + str(value))
 		return ret
+
+	def print_conf(self):
+		self.l.debug("\n===== CONFIG =====")
+		self.l.debug("== input: \"" + self.output + ".qdf\"")
+		self.l.debug("== redundancy: " + str(self.redundancy))
+		self.l.debug("== bit depth: " + str(self.nbits))
+		if self.improve:
+			i = "YES"
+		else:
+			i = "NO"
+		self.l.debug("== using improvements: " + i)
