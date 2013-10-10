@@ -60,6 +60,8 @@ LOG_LEVEL=logger.CRITICAL
 
 s_base = "../sample/test"
 s_long = "../sample/test_long"
+s_embed = "../sample/test_e.pdf"
+s_msg = "../sample/msg"
 
 # Log
 rl = logger.rootLogger(LOG_LEVEL)
@@ -95,15 +97,15 @@ class DefaultAlgoTestCase(unittest.TestCase):
 		cls.defaultMessage = "123456ThisIsA\n=|__TEST__|="
 		cls.defaultKey = "S3cr3|-"
 	def test_algodef_embed(self):
-		ps = pdf_algo.PDF_stego(s_base + ".pdf",rl)
+		ps = pdf_algo.PDF_stego(s_base + ".pdf",rl,output=s_embed)
 		result = ps.embed(self.defaultMessage,self.defaultKey)
 		self.assertTrue(result > 0)
 	def test_algodef_extract(self):
-		ps = pdf_algo.PDF_stego(s_base + ".pdf.out.fix.pdf",rl)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algodef_resultchk(self):
-		output_file = open(s_base + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -123,54 +125,54 @@ class SpecialAlgoTestCase(unittest.TestCase):
 			cls.redundancy = round(random.random(),2)
 		cls.nbits = random.randrange(5,8)
 	def test_algo_customred_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,red=self.redundancy)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,red=self.redundancy)
 		result = ps.embed(self.defaultMessage,self.defaultKey)
 		self.assertTrue(result > 0)
 	def test_algo_customred_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,red=self.redundancy)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,red=self.redundancy)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customred_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
 	def test_algo_customnbit_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,nbits=self.nbits)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,nbits=self.nbits)
 		result = ps.embed(self.defaultMessage,self.defaultKey)
 		self.assertTrue(result > 0)
 	def test_algo_customnbit_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,nbits=self.nbits)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,nbits=self.nbits)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customnbit_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
 	def test_algo_customrange_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,customrange=True)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,customrange=True)
 		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
 		self.assertTrue(result > 0)
 	def test_algo_customrange_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,customrange=True)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,customrange=True)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customrange_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
 	def test_algo_full_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,red=self.redundancy,nbits=self.nbits,customrange=True)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,red=self.redundancy,nbits=self.nbits,customrange=True)
 		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
 		self.assertTrue(result > 0)
 	def test_algo_full_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,red=self.redundancy,nbits=self.nbits,customrange=True)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,red=self.redundancy,nbits=self.nbits,customrange=True)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_full_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -185,15 +187,15 @@ class DefaultIAlgoTestCase(unittest.TestCase):
 		cls.defaultMessage = "123456ThisIsA\n=|__TEST__|="
 		cls.defaultKey = "S3cr3|-"
 	def test_algoidef_embed(self):
-		ps = pdf_algo.PDF_stego(s_base + ".pdf",rl,improve=True)
+		ps = pdf_algo.PDF_stego(s_base + ".pdf",rl,output=s_embed,improve=True)
 		result = ps.embed(self.defaultMessage,self.defaultKey)
 		self.assertTrue(result > 0)
 	def test_algoidef_extract(self):
-		ps = pdf_algo.PDF_stego(s_base + ".pdf.out.fix.pdf",rl,improve=True)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoidef_resultchk(self):
-		output_file = open(s_base + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -213,41 +215,41 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 			cls.redundancy = round(random.random(),2)
 		cls.nbits = random.randrange(5,8)
 	def test_algoi_customred_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,improve=True,red=self.redundancy)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,red=self.redundancy)
 		result = ps.embed(self.defaultMessage,self.defaultKey)
 		self.assertTrue(result > 0)
 	def test_algoi_customred_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,improve=True,red=self.redundancy)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True,red=self.redundancy)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customred_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
 	def test_algoi_customnbit_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,improve=True,nbits=self.nbits)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,nbits=self.nbits)
 		result = ps.embed(self.defaultMessage,self.defaultKey)
 		self.assertTrue(result > 0)
 	def test_algoi_customnbit_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,improve=True,nbits=self.nbits)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True,nbits=self.nbits)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customnbit_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
 	def test_algo_customrange_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,improve=True,customrange=True)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,customrange=True)
 		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
 		self.assertTrue(result > 0)
 	def test_algo_customrange_extract(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,improve=True,customrange=True)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True,customrange=True)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customrange_resultchk(self):
-		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
+		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
