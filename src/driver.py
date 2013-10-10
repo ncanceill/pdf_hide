@@ -52,3 +52,7 @@ def fix(input,output):
 # Generates PDF file from QDF or PDF file, compressing streams if needed
 def compress(input,output):
 	os.system('qpdf '+input+' '+output+' --stream-data=compress')
+
+# Removes file
+def delete(file):
+	os.system('rm '+file)

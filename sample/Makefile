@@ -64,7 +64,9 @@ LATEX_2=part$(TX).2
 TXT_PARAG=lorem$(TXT)
 
 OUT=test
-OUT_=test_long
+OUT_LONG=test_long
+OUT_E=test_e$(PDF)
+OUT_MSG=msg
 
 #
 #
@@ -72,24 +74,24 @@ OUT_=test_long
 # TARGETS
 #
 
-all: $(OUT)$(PDF) $(OUT_)$(PDF)
+all: $(OUT)$(PDF) $(OUT_LONG)$(PDF)
 
 $(OUT)$(TX): $(LATEX_1) $(LATEX_2) $(TXT_PARAG)
 	cat $(LATEX_1) > $(OUT)$(TX)
 	cat $(TXT_PARAG) >> $(OUT)$(TX)
 	cat $(LATEX_2) >> $(OUT)$(TX)
 
-$(OUT_)$(TX): $(LATEX_1) $(LATEX_2) $(TXT_PARAG)
-	cat $(LATEX_1) > $(OUT_)$(TX)
-	cat $(TXT_PARAG) >> $(OUT_)$(TX)
-	echo >> $(OUT_)$(TX)
-	cat $(TXT_PARAG) >> $(OUT_)$(TX)
-	echo >> $(OUT_)$(TX)
-	cat $(TXT_PARAG) >> $(OUT_)$(TX)
-	echo >> $(OUT_)$(TX)
-	cat $(TXT_PARAG) >> $(OUT_)$(TX)
-	echo >> $(OUT_)$(TX)
-	cat $(LATEX_2) >> $(OUT_)$(TX)
+$(OUT_LONG)$(TX): $(LATEX_1) $(LATEX_2) $(TXT_PARAG)
+	cat $(LATEX_1) > $(OUT_LONG)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_LONG)$(TX)
+	echo >> $(OUT_LONG)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_LONG)$(TX)
+	echo >> $(OUT_LONG)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_LONG)$(TX)
+	echo >> $(OUT_LONG)$(TX)
+	cat $(TXT_PARAG) >> $(OUT_LONG)$(TX)
+	echo >> $(OUT_LONG)$(TX)
+	cat $(LATEX_2) >> $(OUT_LONG)$(TX)
 
 %$(PDF): %$(TX)
 	$(PDFL) $*
@@ -98,9 +100,11 @@ $(OUT_)$(TX): $(LATEX_1) $(LATEX_2) $(TXT_PARAG)
 # Clean
 
 clean: clean-base clean-long
+	$(RM) $(OUT_E)
+	$(RM) $(OUT_MSG)
 
 clean-base:
 	$(RM) $(OUT).*
 
 clean-long:
-	$(RM) $(OUT_).*
+	$(RM) $(OUT_LONG).*
