@@ -310,21 +310,18 @@ class PDF_stego:
 				self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
 				self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
 		cover_file.close()
+		driver.delete(self.input+".qdf")
 		if i < ind.__len__():
 			self.l.error("Not enough space available (only " + str(self.tj_count_valid) + " available, " + str(ind.__len__()) + " needed)")
 			return 0
 		else:
 			self.l.info("Done embedding.")
-			output_file = open(self.output,"w")
+			output_file = open(self.output+".raw","w")
 			output_file.write(new_file)
 			output_file.close()
-			driver.fix(self.output,self.output+".fix")
+			driver.fix(self.output+".raw",self.output+".fix")
+			driver.delete(self.output+".raw")
 			driver.compress(self.output+".fix",self.output)
-			self.l.info("Output file: \"" + self.output + "\"")
-			self.l.debug(self.print_it("Embedded data","\"" + data + "\""))
-			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
-			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
-			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
 			if self.l.DEBUG:#TODO: do that better
 				embd_file = open(self.output+".fix",encoding="iso-8859-1")
 				tjss = []
@@ -336,11 +333,11 @@ class PDF_stego:
 						tjs += self.get_tjs(m.group(1))
 						tjss += self.get_tjs_signed(m.group(1))
 				embd_file.close()
-				if 0:#self.improve:
-					self.print_debug("TJ values after",tjss)
-					self.print_debug("Low-bits TJ values after",map(lambda x: abs(x) % (2**self.nbits),tjss))
-					self.print_debug("TJ average after",n.avg(tjss))
-					self.print_debug("TJ unsigned average after",n.avg(tjs))
+				#if 0:#self.improve:
+				#	self.print_debug("TJ values after",tjss)
+				#	self.print_debug("Low-bits TJ values after",map(lambda x: abs(x) % (2**self.nbits),tjss))
+				#	self.print_debug("TJ average after",n.avg(tjss))
+				#	self.print_debug("TJ unsigned average after",n.avg(tjs))
 				i = 0
 				sbugs = []
 				while i < tjss.__len__():
@@ -349,6 +346,12 @@ class PDF_stego:
 					i += 1
 				if sbugs.__len__() > 0:
 					self.l.debug(self.print_it("Sign bugs",sbugs))
+			self.l.debug(self.print_it("Embedded data","\"" + data + "\""))
+			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
+			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
+			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
+			driver.delete(self.output+".fix")
+			self.l.info("Output file: \"" + self.output + "\"")
 			return nums[1].__len__()
 
 	def extract_op(self,val,ch_two):
@@ -428,6 +431,7 @@ class PDF_stego:
 				# Try to extract data from TJ block
 				tjs += self.extract_line(line,ch_two)
 		embedding_file.close()
+		driver.delete(self.input+".qdf")
 		if 0:#self.improve:
 			# Extract jitter
 			if tjs[0] < 0:
