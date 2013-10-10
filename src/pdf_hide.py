@@ -56,6 +56,8 @@ def main():
 	# CLI - General
 	parser.add_argument("filename",
 						help="PDF file (may be compressed) to use as input")
+	parser.add_argument("-o", "--output", dest="output", default="out.pdf_hide",
+						help="use FILENAME as the output file", metavar="FILENAME")
 	parser.add_argument("-k", "--key", dest="key",
 						help="use KEY as the stego-key", metavar="KEY")
 	# CLI - Embedding
@@ -95,7 +97,7 @@ def main():
 	if args.action == "embed":
 		if args.key == None:
 			args.key = getpass.getpass("Please enter stego-key: ")
-		ps = pdf_algo.PDF_stego(args.filename,rl,improve=args.improve,red=args.red,nbits=args.nbits,customrange=args.customrange)
+		ps = pdf_algo.PDF_stego(args.filename,rl,output=args.output,improve=args.improve,red=args.red,nbits=args.nbits,customrange=args.customrange)
 		result = ps.embed(args.data.read(),args.key,norandom=args.norandom)
 		if args.verbose >= 0:
 			rl.print_discl()
@@ -105,7 +107,7 @@ def main():
 	elif args.action == "extract":
 		if args.key == None:
 			args.key = getpass.getpass("Please enter derived-key: ")
-		ps = pdf_algo.PDF_stego(args.filename,rl,args.improve,args.red,args.nbits,args.customrange)
+		ps = pdf_algo.PDF_stego(args.filename,rl,output=args.output,improve=args.improve,red=args.red,nbits=args.nbits,customrange=args.customrange)
 		result = ps.extract(args.key)
 		if args.verbose >= 0:
 			rl.print_discl()
