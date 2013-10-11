@@ -14,11 +14,11 @@ This project stems from research conducted at the University of Amsterdam, The N
 ## Basic usage
 
 ````bash
-pdf_hide -f innocent_file.pdf -m "secret message" -k "secret key" embed
+pdf_hide -k "secret key" embed secret_data_file innocent_file.pdf
 ````
 
 ````bash
-pdf_hide -f innocent_file.pdf -k "secret key" extract
+pdf_hide -k "secret key" extract innocent_file.pdf
 ````
 
 ## Getting started
