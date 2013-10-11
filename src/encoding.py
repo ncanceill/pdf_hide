@@ -38,17 +38,36 @@ __version__ = "0.0a"
 #
 #
 #
-# CLASSES
+# MAIN CLASS
 #
 
 # Handle 015 and 116 numeral integers, and binary strings, and other stuff
 class Numerals:
 
+	#
+	#
+	# INITIALIZATION
+	#
+
+	#
+	# Setting
+
 	# The number of bit to use
 	n = 4
 
+	#
+	# Init
+
 	def __init__(self,nbits):
 		self.n = nbits
+
+	#
+	#
+	# FUNCTIONS
+	#
+
+	#
+	# Binary strings
 
 	def pad_binstr(self,b,nbits):
 		while b.__len__() < nbits:
@@ -80,13 +99,19 @@ class Numerals:
 	def binstr_to_num(self,str):
 		return int(str,2) % (2**self.n)
 
+	# Returns the 20-byte SHA1 digest of a string as an hexadecimal string
+	def digest(self,str):
+		return hashlib.sha1(str.encode('utf-8')).hexdigest()
+
+	#
+	# Sequences of numerals
+
 	# Splits a sequence into a list of sequences of specified length (the last one may be shorter)
 	def split_len(self,seq,length):
 		return [seq[i:i+length] for i in range(0,len(seq),length)]
 
-	# Returns the 20-byte SHA1 digest of a string as an hexadecimal string
-	def digest(self,str):
-		return hashlib.sha1(str.encode('utf-8')).hexdigest()
+	#
+	# Encoding
 
 	# Encodes a 20-byte SHA1 digest to a list of 20 numerals array according to the algo
 	def digest_to_nums(self,d):
@@ -110,6 +135,9 @@ class Numerals:
 	# Returns the list of 20 numerals representing "FlagStr"
 	def encode_key(self,key):
 		return self.digest_to_nums(key)
+
+	#
+	# Math
 
 	def avg(self,nums):
 		n = 0
