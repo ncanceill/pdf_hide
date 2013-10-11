@@ -44,10 +44,19 @@ __version__ = "0.0a"
 #
 #
 #
-# CLASSES
+# MAIN CLASS
 #
 
 class PDF_stego:
+
+	#
+	#
+	#
+	# VARIABLES
+	#
+
+	#
+	# Algo settings
 
 	# The number of bit to use
 	nbits = 4
@@ -68,10 +77,20 @@ class PDF_stego:
 	mu_one = 3.7
 	mu_two = 3.8
 
+	#
+	# Dynamic variables
+
 	# Counters for TJ operators
 	tj_count = 0
 	tj_count_valid = 0
 
+	#
+	#
+	#
+	# INITIALIZATION
+	#
+
+	# Set algo settings at creation time
 	def __init__(self,input,log,output="a.out",improve=False,red=0.1,nbits=4,customrange=False):
 		self.input = input
 		self.output = output
@@ -81,6 +100,15 @@ class PDF_stego:
 		self.nbits = nbits
 		if self.improve:
 			self.customrange = customrange
+
+	#
+	#
+	#
+	# TOOLS
+	#
+
+	#
+	# Parsing tools for TJ operators
 
 	def get_tjs(self,line):
 		tjs = []
@@ -113,6 +141,38 @@ class PDF_stego:
 					tjs += [val]
 				k += m.end(1)
 		return tjs
+
+	#
+	# Printing tools for debug
+
+	def print_it(self,name,value):
+		ret = ""
+		if value != None and hasattr(value, '__len__'):
+			ret += name + ' (' + str(value.__len__()) + ')'
+		else:
+			ret += name
+		if value == None:
+			ret += ""
+		else:
+			ret += ('\t' + str(value))
+		return ret
+
+	def print_conf(self):
+		self.l.debug("\n===== CONFIG =====")
+		self.l.debug("== input: \"" + self.output + ".qdf\"")
+		self.l.debug("== redundancy: " + str(self.redundancy))
+		self.l.debug("== bit depth: " + str(self.nbits))
+		if self.improve:
+			i = "YES"
+		else:
+			i = "NO"
+		self.l.debug("== using improvements: " + i)
+
+	#
+	#
+	#
+	# EMBEDDING
+	#
 
 	# Embeds data in a TJ operator
 	#
@@ -373,6 +433,12 @@ class PDF_stego:
 			driver.delete(self.output+".fix")
 			self.l.info("Output file: \"" + self.output + "\"")
 			return nums[1].__len__()
+	
+	#
+	#
+	#
+	# EXTRACTING
+	#
 
 	def extract_op(self,val,ch_two):
 		self.tj_count += 1
@@ -532,26 +598,3 @@ class PDF_stego:
 				self.l.debug(self.print_it("Total nb of valid TJ ops used",embedded.__len__() + 40))
 				self.l.debug(self.print_it("Total nb of valid TJ ops used for data",embedded.__len__()))
 				return 0
-
-	def print_it(self,name,value):
-		ret = ""
-		if value != None and hasattr(value, '__len__'):
-			ret += name + ' (' + str(value.__len__()) + ')'
-		else:
-			ret += name
-		if value == None:
-			ret += ""
-		else:
-			ret += ('\t' + str(value))
-		return ret
-
-	def print_conf(self):
-		self.l.debug("\n===== CONFIG =====")
-		self.l.debug("== input: \"" + self.output + ".qdf\"")
-		self.l.debug("== redundancy: " + str(self.redundancy))
-		self.l.debug("== bit depth: " + str(self.nbits))
-		if self.improve:
-			i = "YES"
-		else:
-			i = "NO"
-		self.l.debug("== using improvements: " + i)
