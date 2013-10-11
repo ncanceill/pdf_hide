@@ -75,9 +75,10 @@ def print_end(case):
 #
 #
 #
-# CLASSES
+# TEST CASES
 #
 
+# Dependencies
 class AllDependenciesTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -90,6 +91,7 @@ class AllDependenciesTestCase(unittest.TestCase):
 	def tearDownClass(cls):
 		print_end('dependencies')
 
+# Algorithm, no custom settings, no improvements
 class DefaultAlgoTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -113,6 +115,7 @@ class DefaultAlgoTestCase(unittest.TestCase):
 	def tearDownClass(cls):
 		print_end('algorithm (default)')
 
+# Algorithm, custom settings, no improvements
 class SpecialAlgoTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -180,6 +183,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 	def tearDownClass(cls):
 		print_end('algorithm (special)')
 
+# Algorithm, no custom settings, improvements
 class DefaultIAlgoTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -203,6 +207,7 @@ class DefaultIAlgoTestCase(unittest.TestCase):
 	def tearDownClass(cls):
 		print_end('algorithm improved (default)')
 
+# Algorithm, custom settings, improvements
 class SpecialIAlgoTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):

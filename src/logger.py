@@ -60,10 +60,11 @@ Please see LICENSE.md or http://www.gnu.org/licenses/ for details."""
 #
 #
 #
-# CLASSES
+# ROOT LOGGER
 #
 
 class rootLogger:
+	# Set verbosity level at creation time
 	def __init__(self,verbose=0):
 		logging.basicConfig(format=LOG_FORMAT)
 		if verbose == CRITICAL:
@@ -77,11 +78,13 @@ class rootLogger:
 			logging.getLogger().setLevel(logging.DEBUG)
 			self.DEBUG=True
 
+	# Print splash screen
 	def print_splash(self):
 		print("====================")
 		print(MSG_VERSION)
 		print("====================")
 
+	# Print disclaimer
 	def print_discl(self):
 		print("====================")
 		print(MSG_LICENSE)
