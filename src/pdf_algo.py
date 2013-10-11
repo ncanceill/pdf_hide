@@ -556,7 +556,7 @@ class PDF_stego:
 				if k == embedded.__len__() - 1:
 					missing = -(bin_str.__len__() % 8) % 8
 					if missing > self.nbits:
-						self.l.error("...") #TODO: message
+						self.l.error("Trailing data is too long and cannot be decoded")
 						self.l.debug(self.print_it("Raw data (corrupted)",embedded))
 						return -1
 					bin_str += bin[bin.__len__() - missing:]
