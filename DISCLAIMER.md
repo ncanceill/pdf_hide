@@ -17,7 +17,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-Please see LICENSE.md or http://www.gnu.org/licenses/ for details.
+Please see [LICENSE.md](LICENSE.md) or http://www.gnu.org/licenses/ for details.
 
 ## WARRANTY
 
