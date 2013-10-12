@@ -14,11 +14,11 @@ This project stems from research conducted at the University of Amsterdam, The N
 ## Basic usage
 
 ````bash
-pdf_hide embed secret_data_file innocent_file.pdf
+pdf_hide embed secret_data.txt innocent.pdf
 ````
 
 ````bash
-pdf_hide extract innocent_file.pdf
+pdf_hide extract innocent.pdf
 ````
 
 ## Getting started
