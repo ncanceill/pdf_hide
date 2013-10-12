@@ -33,17 +33,25 @@ It requires [QPDF](http://qpdf.sourceforge.net) in order to modify compressed PD
 
 ### Setup
 
-You can find the latest version packaged on the [releases page](../../releases). The current version is [0.0 alpha](../../releases/tag/v0.0a): [tgz](../../archive/v0.0a.tar.gz) — [zip](../../archive/v0.0a.zip).
+You can find the latest version packaged on the [releases page](../../releases). The current version is [0.0 beta](../../releases/tag/v0.0b): [tgz](../../archive/v0.0b.tar.gz) — [zip](../../archive/v0.0b.zip).
 
 ## Project status
 
-Current version is 0.0 alpha
+Current version is 0.0 beta
 
 ### Stability
 
 The current version is UNSTABLE and should not be run in production.
 
 ### Changelog
+
+#### version 0.0b
+
+[Changelog discussion](../../issues/9)
+
+* Refactored code (logging, input, comments, debug)
+* Migrated to Python 3
+* Migrated to argparse
 
 #### version 0.0a
 

@@ -32,12 +32,12 @@ import pdf_algo
 
 #
 # pdf_hide.py
-__version__ = "0.0a"
+__version__ = "0.0b"
 #
 # This is a steganographic tool for hiding data in PDF files
 #
 # Written by Nicolas Canceill
-# Last updated on May 6, 2013
+# Last updated on Oct 12, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 

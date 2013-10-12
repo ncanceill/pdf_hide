@@ -21,12 +21,12 @@
 # Copyright (C) 2013 Nicolas Canceill
 #
 NAME=pdf_hide
-VERSION=0.0a
+VERSION=0.0b
 #
-# This is a Makefile for pdf_hide v0.0a
+# This is a Makefile for pdf_hide v0.0b
 #
 # Written by Nicolas Canceill
-# Last updated on Sept 28, 2013
+# Last updated on Oct 12, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 
