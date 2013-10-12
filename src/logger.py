@@ -26,12 +26,12 @@ import logging
 
 #
 # logger.py
-__version__ = "0.0a"
+__version__ = "0.0b"
 #
-# This is a logging engine for pdf_hide v0.0a
+# This is a logging engine for pdf_hide v0.0b
 #
 # Written by Nicolas Canceill
-# Last updated on Sept 29, 2013
+# Last updated on Oct 12, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 
