@@ -294,8 +294,8 @@ class PDF_stego:
 		self.norandom = norandom
 		self.l.info("Embedding data, please wait...")
 		driver.uncompress(self.input,self.input+".qdf")
-		cover_file = open(self.input + ".qdf",encoding="iso-8859-1")
-		new_file = ""
+		cover_file = open(self.input + ".qdf","rb")
+		new_file = b""
 		n = encoding.Numerals(self.nbits)
 		# Get the numerals to embed from the key and the message
 		nums = n.encode_msg(data,passkey)
@@ -333,7 +333,8 @@ class PDF_stego:
 		i = 0
 		j = 0
 		cover_file.seek(0,0)
-		for line in cover_file:
+		for line__ in cover_file:
+			line = line__.decode("latin-1")
 			line_ = line
 			k = 0
 			while k < line_.__len__():
@@ -351,7 +352,7 @@ class PDF_stego:
 					j = block[2]
 					# Update current position
 					k += m.start(1) + block[0].__len__()
-			new_file += line_
+			new_file += line_.encode("latin-1")
 		tjss_ = []
 		#
 		#
@@ -362,7 +363,8 @@ class PDF_stego:
 			cover_file.seek(0,0)
 			tjss = []
 			# Parse file
-			for line in cover_file:
+			for line__ in cover_file:
+				line = line__.decode("latin-1")
 				# Parse line for TJ blocks
 				m = re.search(r'\[(.*)\][ ]?TJ',line)
 				if m != None:
@@ -386,7 +388,7 @@ class PDF_stego:
 			return 0
 		else:
 			self.l.info("Done embedding.")
-			output_file = open(self.output+".raw","w")
+			output_file = open(self.output+".raw","wb")
 			output_file.write(new_file)
 			output_file.close()
 			driver.fix(self.output+".raw",self.output+".fix")
