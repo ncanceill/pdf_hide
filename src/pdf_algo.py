@@ -303,7 +303,8 @@ class PDF_stego:
 		tjs = []
 		if self.improve:
 			# Parse file
-			for line in cover_file:
+			for line__ in cover_file:
+				line = line__.decode("latin-1")
 				# Parse line for TJ blocks
 				m = re.search(r'\[(.*)\][ ]?TJ',line)
 				if m != None:
