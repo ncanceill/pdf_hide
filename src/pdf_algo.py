@@ -2,10 +2,10 @@
 import re
 import random
 
-import chaos
-import driver
-import encoding
-import logger
+from src import chaos
+from src import driver
+from src import encoding
+from src import logger
 
 #
 #

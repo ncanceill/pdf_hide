@@ -58,6 +58,8 @@ TAR=$(TAR_B) $(TAR_F)
 PYTH_B=python3
 PYTH_F=
 PYTH=$(PYTH_B) $(PYTH_F)
+PYTEST_F=-m
+PYTEST=$(PYTH_B) $(PYTEST_F)
 
 #
 # Names
@@ -70,8 +72,8 @@ ADD=$(SAMPLE_D)/*
 
 UTL=Makefile README.md
 
-TEST_D=$(SRC_D)
-TEST=tests$(PY)
+TEST_D=test
+TEST=tests
 
 #
 #
@@ -94,7 +96,7 @@ samples:
 	make -C $(SAMPLE_D) all
 
 test: samples
-	cd $(TEST_D) && $(PYTH) $(TEST)
+	$(PYTEST) $(TEST_D).$(TEST)
 
 #
 # Clean
