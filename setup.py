@@ -44,6 +44,7 @@ setup(name='pdf_hide',
 	  maintainer='Nicolas Canceill',
 	  maintainer_email='nicolas.canceill@ens-cachan.org',
 	  url='https://github.com/ncanceill/pdf_hide',
+	  license='GNU Public License v3',
 	  package_dir={'pdf_hide':'src'},
 	  packages=['pdf_hide']
 	  )
