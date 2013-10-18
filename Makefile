@@ -26,7 +26,7 @@ VERSION=0.0b
 # This is a Makefile for pdf_hide v0.0b
 #
 # Written by Nicolas Canceill
-# Last updated on Oct 12, 2013
+# Last updated on Oct 18, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 
@@ -88,7 +88,16 @@ TESTS=$(TEST_D)/$(TEST)$(PY)
 # TARGETS
 #
 
-all:
+all: builds
+
+#
+# Main
+
+builds:
+	$(PYTH) $(SETUP) build
+
+install:
+	$(PYTH) $(SETUP) install
 
 #
 # Package

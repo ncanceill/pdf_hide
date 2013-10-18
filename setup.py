@@ -47,5 +47,5 @@ setup(name='pdf_hide',
 	  license='GNU Public License v3',
 	  packages=['pdfhide'],
 	  provides=['pdfhide'],
-	  scripts=['pdf_hide.py']
+	  scripts=['pdf_hide']
 	  )
