@@ -38,6 +38,7 @@
 
 include *.md
 include Makefile
+recursive-include sample Makefile
 
 #
 # Tests
@@ -49,4 +50,4 @@ recursive-include test __init__.py
 # Samples
 #
 
-recursive-include sample Makefile *.txt *.tex*
+recursive-include sample *.txt *.tex*
