@@ -27,7 +27,7 @@
 # __init__.py
 __version__ = "0.0b"
 #
-# This is a Python3 init script for pdf_hide tests v0.0b
+# This is a Python3 init script for pdf_hide module test v0.0b
 #
 # Written by Nicolas Canceill
 # Last updated on Oct 17, 2013

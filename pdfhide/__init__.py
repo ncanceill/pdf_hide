@@ -27,7 +27,7 @@
 # __init__.py
 __version__ = "0.0b"
 #
-# This is a Python3 init script for pdf_hide v0.0b
+# This is a Python3 init script for pdf_hide module pdfhide v0.0b
 #
 # Written by Nicolas Canceill
 # Last updated on Oct 12, 2013
@@ -37,4 +37,4 @@ __version__ = "0.0b"
 #
 # All modules
 
-__all__ = [ "chaos", "encoding", "driver", "pdf_algo", "pdf_hide", "logger" ]
+__all__ = [ "chaos", "encoding", "driver", "pdf_algo", "logger" ]
