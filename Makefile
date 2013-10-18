@@ -64,16 +64,23 @@ PYTEST=$(PYTH_B) $(PYTEST_F)
 #
 # Names
 
+SETUP=setup$(PY)
+
+MK=Makefile $(SAMPLE_D)/Makefile
+UTL=README.md LICENSE.md DISCLAIMER.md
+
 SRC_D=src
 SRC=$(SRC_D)/*$(PY)
 
-SAMPLE_D=sample
-ADD=$(SAMPLE_D)/*
+BUILD_D=build
+DIST_D=dist
 
-UTL=Makefile README.md
+SAMPLE_D=sample
+SAMPLE=$(SAMPLE_D)/*.txt $(SAMPLE_D)/*.tex*
 
 TEST_D=test
 TEST=tests
+TESTS=$(TEST_D)/$(TEST)$(PY)
 
 #
 #
@@ -86,8 +93,8 @@ all:
 #
 # Package
 
-pkg: $(SRC) clean
-	$(TAR) $(NAME)-$(VERSION)$(TGZ) $(SRC) $(UTL) $(ADD)
+pkg: $(SRC) $(SAMPLE) $(TESTS) $(MK) $(UTL) clean
+	$(PYTH) $(SETUP) sdist
 
 #
 # Tests
@@ -104,5 +111,8 @@ tests: samples
 clean:
 	make -C $(SAMPLE_D) clean
 
+clean-build:
+	$(RM) $(BUILD_D)/*
+
 clean-pkg:
-	$(RM) $(NAME)-$(VERSION)$(TGZ)
+	$(RM) $(DIST_D)/*
