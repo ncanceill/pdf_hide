@@ -95,7 +95,7 @@ pkg: $(SRC) clean
 samples:
 	make -C $(SAMPLE_D) all
 
-test: samples
+tests: samples
 	$(PYTEST) $(TEST_D).$(TEST)
 
 #
