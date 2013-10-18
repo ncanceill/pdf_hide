@@ -4,8 +4,8 @@ import select
 import argparse
 import getpass
 
-import logger
-import pdf_algo
+from src import logger
+from src import pdf_algo
 
 #
 #
