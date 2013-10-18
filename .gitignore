@@ -38,6 +38,9 @@
 # Manifest (auto-generated)
 MANIFEST
 
+# Build directory
+build/*
+
 # Distribution packages
 dist/*
 
