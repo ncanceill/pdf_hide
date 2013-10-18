@@ -37,7 +37,7 @@ __version__ = "0.0b"
 # This is a steganographic algorithm able to hide data in PDF files
 #
 # Written by Nicolas Canceill
-# Last updated on Oct 12, 2013
+# Last updated on Oct 18, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 
@@ -356,31 +356,12 @@ class PDF_stego:
 			new_file += line_.encode("latin-1")
 		tjss_ = []
 		#
-		#
 		# BEGIN DEBUG CHECKS
 		#
-		#
 		if self.l.DEBUG:#TODO: do that better
-			cover_file.seek(0,0)
-			tjss = []
-			# Parse file
-			for line__ in cover_file:
-				line = line__.decode("latin-1")
-				# Parse line for TJ blocks
-				m = re.search(r'\[(.*)\][ ]?TJ',line)
-				if m != None:
-					tjs += self.get_tjs(m.group(1))
-					tjss += self.get_tjs_signed(m.group(1))
-			tjss_ = tjss
-			#if 0:#self.improve:
-			#	self.l.debug(self.print_it("TJ values before",tjss))
-			#	self.l.debug(self.print_it("Low-bits TJ values before",map(lambda x: abs(x) % (2**self.nbits),tjss)))
-			#	self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
-			#	self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
-		#
+			self.debug_embed_check_tj()
 		#
 		# END DEBUG CHECKS
-		#
 		#
 		cover_file.close()
 		driver.delete(self.input+".qdf")
@@ -396,47 +377,17 @@ class PDF_stego:
 			driver.delete(self.output+".raw")
 			driver.compress(self.output+".fix",self.output)
 			#
-			#
 			# BEGIN DEBUG CHECKS
 			#
-			#
 			if self.l.DEBUG:#TODO: do that better
-				embd_file = open(self.output+".fix",encoding="iso-8859-1")
-				tjss = []
-				# Parse file
-				for line in embd_file:
-					# Parse line for TJ blocks
-					m = re.search(r'\[(.*)\][ ]?TJ',line)
-					if m != None:
-						tjs += self.get_tjs(m.group(1))
-						tjss += self.get_tjs_signed(m.group(1))
-				embd_file.close()
-				#if 0:#self.improve:
-				#	self.print_debug("TJ values after",tjss)
-				#	self.print_debug("Low-bits TJ values after",map(lambda x: abs(x) % (2**self.nbits),tjss))
-				#	self.print_debug("TJ average after",n.avg(tjss))
-				#	self.print_debug("TJ unsigned average after",n.avg(tjs))
-				i = 0
-				sbugs = []
-				while i < tjss.__len__():
-					if tjss[i] * tjss_[i] < 0:
-						sbugs += ["@[" + str(i) + "] orig. " + str(tjss_[i]) + " | new " + str(tjss[i])]
-					i += 1
-				if sbugs.__len__() > 0:
-					self.l.debug(self.print_it("Sign bugs",sbugs))
-			self.l.debug(self.print_it("Embedded data","\"" + data + "\""))
-			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
-			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
-			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
-			#
+				self.debug_embed_print_sum()
 			#
 			# END DEBUG CHECKS
-			#
 			#
 			driver.delete(self.output+".fix")
 			self.l.info("Output file: \"" + self.output + "\"")
 			return nums[1].__len__()
-	
+
 	#
 	#
 	#
@@ -571,18 +522,12 @@ class PDF_stego:
 			for ch in emb_chars:
 				emb_str += ch
 			#
-			#
 			# BEGIN DEBUG CHECKS
 			#
-			#
 			if self.l.DEBUG:#TODO: do that better
-				self.l.debug(self.print_it('Data Checksum',n.encode_key(emb_str)))
-				self.l.debug(self.print_it('CheckStr',checkstr))
-				self.l.debug(self.print_it('Data',embedded))
-			#
+				self.debug_extract_print_sum()
 			#
 			# END DEBUG CHECKS
-			#
 			#
 			# Check integrity
 			if n.digest_to_nums(emb_str) != checkstr:
@@ -601,3 +546,61 @@ class PDF_stego:
 				self.l.debug(self.print_it("Total nb of valid TJ ops used",embedded.__len__() + 40))
 				self.l.debug(self.print_it("Total nb of valid TJ ops used for data",embedded.__len__()))
 				return 0
+
+	#
+	#
+	#
+	# DEBUG CHECKS
+	#
+
+	def debug_embed_check_tj():
+		cover_file.seek(0,0)
+		tjss = []
+		# Parse file
+		for line__ in cover_file:
+			line = line__.decode("latin-1")
+			# Parse line for TJ blocks
+			m = re.search(r'\[(.*)\][ ]?TJ',line)
+			if m != None:
+				tjs += self.get_tjs(m.group(1))
+				tjss += self.get_tjs_signed(m.group(1))
+		tjss_ = tjss
+		#if self.improve:
+		#	self.l.debug(self.print_it("TJ values before",tjss))
+		#	self.l.debug(self.print_it("Low-bits TJ values before",map(lambda x: abs(x) % (2**self.nbits),tjss)))
+		#	self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
+		#	self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
+
+	def debug_embed_print_sum():
+		embd_file = open(self.output+".fix",encoding="iso-8859-1")
+		tjss = []
+		# Parse file
+		for line in embd_file:
+			# Parse line for TJ blocks
+			m = re.search(r'\[(.*)\][ ]?TJ',line)
+			if m != None:
+				tjs += self.get_tjs(m.group(1))
+				tjss += self.get_tjs_signed(m.group(1))
+		embd_file.close()
+		#if 0:#self.improve:
+		#	self.print_debug("TJ values after",tjss)
+		#	self.print_debug("Low-bits TJ values after",map(lambda x: abs(x) % (2**self.nbits),tjss))
+		#	self.print_debug("TJ average after",n.avg(tjss))
+		#	self.print_debug("TJ unsigned average after",n.avg(tjs))
+		i = 0
+		sbugs = []
+		while i < tjss.__len__():
+			if tjss[i] * tjss_[i] < 0:
+				sbugs += ["@[" + str(i) + "] orig. " + str(tjss_[i]) + " | new " + str(tjss[i])]
+			i += 1
+		if sbugs.__len__() > 0:
+			self.l.debug(self.print_it("Sign bugs",sbugs))
+			self.l.debug(self.print_it("Embedded data","\"" + data + "\""))
+			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
+			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
+			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
+
+	def debug_extract_print_sum():
+		self.l.debug(self.print_it('Data Checksum',n.encode_key(emb_str)))
+		self.l.debug(self.print_it('CheckStr',checkstr))
+		self.l.debug(self.print_it('Data',embedded))
