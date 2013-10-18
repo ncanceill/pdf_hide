@@ -47,7 +47,7 @@ __version__ = "0.0b"
 #
 
 # Random seed: use a specific number to reproduce tests
-RANDOM_SEED=None
+RANDOM_SEED=os.urandom(16)
 
 # Log level: use logger.DEBUG to debug
 LOG_LEVEL=logger.CRITICAL
@@ -68,6 +68,7 @@ rl = logger.rootLogger(LOG_LEVEL)
 
 def print_begin(case):
 	print("========== BEGIN TEST " + case.upper() + " ==========")
+	print("========== SEED TEST = " + str(RANDOM_SEED) + " ==========")
 
 def print_end(case):
 	print("========== END TEST " + case.upper() + " ==========")
