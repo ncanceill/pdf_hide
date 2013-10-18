@@ -40,6 +40,12 @@ include *.md
 include Makefile
 
 #
+# Tests
+#
+
+recursive-include test __init__.py
+
+#
 # Samples
 #
 
