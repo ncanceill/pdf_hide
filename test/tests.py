@@ -68,7 +68,7 @@ rl = logger.rootLogger(LOG_LEVEL)
 
 def print_begin(case):
 	print("========== BEGIN TEST " + case.upper() + " ==========")
-	print("========== SEED TEST = " + str(RANDOM_SEED) + " ==========")
+	print("========== SEED TEST = " + str(RANDOM_SEED))
 
 def print_end(case):
 	print("========== END TEST " + case.upper() + " ==========")
