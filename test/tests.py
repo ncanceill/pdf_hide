@@ -126,7 +126,9 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		cls.defaultKey = "S3cr3|-"
 		cls.redundancy = 0
 		while cls.redundancy == 0:
-			cls.redundancy = round(random.random(),2)
+			#0.85 as a margin to be sure there is enough space
+			#TODO: check nb of TJ ops and do that dynamically
+			cls.redundancy = round(random.random()*0.85,2)
 		cls.nbits = random.randrange(5,8)
 	def test_algo_customred_embed(self):
 		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,red=self.redundancy)
@@ -218,7 +220,9 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		cls.defaultKey = "S3cr3|-"
 		cls.redundancy = 0
 		while cls.redundancy == 0:
-			cls.redundancy = round(random.random(),2)
+			#0.85 as a margin to be sure there is enough space
+			#TODO: check nb of TJ ops and do that dynamically
+			cls.redundancy = round(random.random()*0.85,2)
 		cls.nbits = random.randrange(5,8)
 	def test_algoi_customred_embed(self):
 		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,red=self.redundancy)
