@@ -37,4 +37,4 @@ __version__ = "0.0b"
 #
 # All modules
 
-__all__ = [ "chaos", "encoding", "driver", "pdf_algo", "pdf_hide", "tests", "logger" ]
+__all__ = [ "chaos", "encoding", "driver", "pdf_algo", "pdf_hide", "logger" ]
