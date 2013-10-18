@@ -108,7 +108,9 @@ tests: samples
 #
 # Clean
 
-clean:
+clean: clean-sample clean-build clean-pkg
+
+clean-sample:
 	make -C $(SAMPLE_D) clean
 
 clean-build:
