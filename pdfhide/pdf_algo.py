@@ -359,7 +359,7 @@ class PDF_stego:
 		# BEGIN DEBUG CHECKS
 		#
 		if self.l.DEBUG:#TODO: do that better
-			self.debug_embed_check_tj()
+			self.debug_embed_check_tj(cover_file)
 		#
 		# END DEBUG CHECKS
 		#
@@ -553,7 +553,7 @@ class PDF_stego:
 	# DEBUG CHECKS
 	#
 
-	def debug_embed_check_tj():
+	def debug_embed_check_tj(self,cover_file):
 		cover_file.seek(0,0)
 		tjss = []
 		# Parse file
@@ -571,7 +571,7 @@ class PDF_stego:
 		#	self.l.debug(self.print_it("TJ average before",n.avg(tjss)))
 		#	self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
 
-	def debug_embed_print_sum():
+	def debug_embed_print_sum(self):
 		embd_file = open(self.output+".fix",encoding="iso-8859-1")
 		tjss = []
 		# Parse file
@@ -600,7 +600,7 @@ class PDF_stego:
 			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
 			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
 
-	def debug_extract_print_sum():
+	def debug_extract_print_sum(self):
 		self.l.debug(self.print_it('Data Checksum',n.encode_key(emb_str)))
 		self.l.debug(self.print_it('CheckStr',checkstr))
 		self.l.debug(self.print_it('Data',embedded))
