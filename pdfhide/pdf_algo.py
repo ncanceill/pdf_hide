@@ -300,7 +300,7 @@ class PDF_stego:
 		# Get the numerals to embed from the key and the message
 		nums = n.encode_msg(data,passkey)
 		ind = nums[0] + nums[1] + nums[2]
-		tjs = []
+		self.tjs = []
 		if self.improve:
 			# Parse file
 			for line__ in cover_file:
@@ -308,7 +308,7 @@ class PDF_stego:
 				# Parse line for TJ blocks
 				m = re.search(r'\[(.*)\][ ]?TJ',line)
 				if m != None:
-					tjs += self.get_tjs(m.group(1))
+					self.tjs += self.get_tjs(m.group(1))
 			# Jitter data
 			jitter = 0#int(n.mean(tjs,ind)) #TODO: improve jitter calculation
 			ind = list(map(lambda x: (x + jitter) % (2**self.nbits),ind))
@@ -327,7 +327,7 @@ class PDF_stego:
 			ch_two = chaos.Chaotic(self.mu_two,nums[2])
 		# Parse file
 		if 0:#self.improve: #TODO: fix
-			start = int(tjs.__len__() * ch_two.random())
+			start = int(self.tjs.__len__() * ch_two.random())
 			self.l.debug(self.print_it("Random start position",start))
 		else:
 			start = 0
@@ -346,7 +346,7 @@ class PDF_stego:
 					k += 1
 				else:
 					# Try to embed data in TJ block
-					block = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,tjs.__len__(),jitter,j)
+					block = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,self.tjs.__len__(),jitter,j)
 					# Insert new block
 					line_ = line_[:k + m.start(1)] + block[0] + line_[k + m.end(1):]
 					i = block[1]
@@ -354,7 +354,7 @@ class PDF_stego:
 					# Update current position
 					k += m.start(1) + block[0].__len__()
 			new_file += line_.encode("latin-1")
-		tjss_ = []
+		self.tjss_ = []
 		#
 		# BEGIN DEBUG CHECKS
 		#
@@ -525,7 +525,7 @@ class PDF_stego:
 			# BEGIN DEBUG CHECKS
 			#
 			if self.l.DEBUG:#TODO: do that better
-				self.debug_extract_print_sum()
+				self.debug_extract_print_sum(n.encode_key(emb_str),checkstr,embedded)
 			#
 			# END DEBUG CHECKS
 			#
@@ -562,9 +562,9 @@ class PDF_stego:
 			# Parse line for TJ blocks
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m != None:
-				tjs += self.get_tjs(m.group(1))
+				self.tjs += self.get_tjs(m.group(1))
 				tjss += self.get_tjs_signed(m.group(1))
-		tjss_ = tjss
+		self.tjss_ = tjss
 		#if self.improve:
 		#	self.l.debug(self.print_it("TJ values before",tjss))
 		#	self.l.debug(self.print_it("Low-bits TJ values before",map(lambda x: abs(x) % (2**self.nbits),tjss)))
@@ -579,7 +579,7 @@ class PDF_stego:
 			# Parse line for TJ blocks
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m != None:
-				tjs += self.get_tjs(m.group(1))
+				self.tjs += self.get_tjs(m.group(1))
 				tjss += self.get_tjs_signed(m.group(1))
 		embd_file.close()
 		#if 0:#self.improve:
@@ -590,8 +590,8 @@ class PDF_stego:
 		i = 0
 		sbugs = []
 		while i < tjss.__len__():
-			if tjss[i] * tjss_[i] < 0:
-				sbugs += ["@[" + str(i) + "] orig. " + str(tjss_[i]) + " | new " + str(tjss[i])]
+			if tjss[i] * self.tjss_[i] < 0:
+				sbugs += ["@[" + str(i) + "] orig. " + str(self.tjss_[i]) + " | new " + str(tjss[i])]
 			i += 1
 		if sbugs.__len__() > 0:
 			self.l.debug(self.print_it("Sign bugs",sbugs))
@@ -600,7 +600,7 @@ class PDF_stego:
 			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
 			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
 
-	def debug_extract_print_sum(self):
-		self.l.debug(self.print_it('Data Checksum',n.encode_key(emb_str)))
+	def debug_extract_print_sum(self,checksum,checkstr,embedded):
+		self.l.debug(self.print_it('Data Checksum',checksum))
 		self.l.debug(self.print_it('CheckStr',checkstr))
 		self.l.debug(self.print_it('Data',embedded))
