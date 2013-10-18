@@ -3,8 +3,8 @@ import unittest
 import os
 import random
 
-from src import logger
-from src import pdf_algo
+from pdfhide import logger
+from pdfhide import pdf_algo
 
 #
 #
