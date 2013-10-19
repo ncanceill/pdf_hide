@@ -517,8 +517,13 @@ class PDF_stego:
 				else:
 					bin_str += bin
 				k += 1
-			emb_chars = map(n.binstr_to_ch,n.split_len(bin_str,8))
-			emb_str = ""
+			if binary: # Hack for bytes instead of string
+			#TODO: dothat better and include little endian
+				emb_chars = map(n.binstr_to_byte_bige,n.split_len(n.tail_bige(bin_str),8))
+				emb_str = b""
+			else:
+				emb_chars = map(n.binstr_to_ch,n.split_len(bin_str,8))
+				emb_str = ""
 			for ch in emb_chars:
 				emb_str += ch
 			#
@@ -536,7 +541,10 @@ class PDF_stego:
 				return -1
 			else:
 				self.l.info("Done extracting.")
-				output_file = open(self.output,"w")
+				if binary: # Hack for bytes instead of string
+					output_file = open(self.output,"wb")
+				else:
+					output_file = open(self.output,"w")
 				output_file.write(emb_str)
 				output_file.close()
 				self.l.info("Output file: \"" + self.output + "\"")

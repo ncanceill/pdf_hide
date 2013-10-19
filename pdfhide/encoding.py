@@ -85,6 +85,12 @@ class Numerals:
 			b = b + "0"
 		return b
 
+	def tail_binstr_bige(self,b):
+		return b[b.__len__()%8:]
+
+	def tail_binstr_littlee(self,b,nbits):
+		return b[:b.__len__()-(b.__len__()%8)-1]
+
 	def num_to_binstr(self,num,nbits):
 		return self.pad_binstr(bin(num)[2:],nbits)
 
@@ -119,15 +125,23 @@ class Numerals:
 		else:
 			return self.pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:],self.n)
 
-	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a character
+	# Encodes an 8-bit number (passed-in as a binary string, e.g. "01100001" for a)
+	# into a character
 	def binstr_to_ch(self,str):
 		return chr(int(str,2) % 256)
 
-	# Encodes an ASCII code (passed-in as an hexadecimal string) into a numeral using mod(2^n)
+	# Encodes an 8-bit number (passed-in as a binary string, e.g. "01000110")
+	# into a big endian byte
+	def binstr_to_bytes_bige(self,str):
+		return int(str,2).to_bytes(1,"big")
+
+	# Encodes an ASCII code (passed-in as an hexadecimal string)
+	# into a numeral using mod(2^n)
 	def hexstr_to_num(self,h):
 		return int(h,16) % (2**self.n)
 
-	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4) into a numeral (a "015" numeral if n is 4)
+	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4)
+	# into a numeral (a "015" numeral if n is 4)
 	def binstr_to_num(self,str):
 		return int(str,2) % (2**self.n)
 
