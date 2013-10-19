@@ -14,16 +14,16 @@ This project stems from research conducted at the University of Amsterdam, The N
 ## Basic usage
 
 ````bash
-pdf_hide embed secret_data.txt innocent.pdf
+pdf_hide [-o <embedded.pdf>] embed <data_file> <innocent.pdf>
 ````
 
 ````bash
-pdf_hide extract innocent.pdf
+pdf_hide extract <embedded.pdf>
 ````
 
 ## Getting started
 
-Please visit the [wiki](../../wiki).
+Please read the [guide](../../wiki/Quickstart).
 
 ### Requirements
 
@@ -31,19 +31,29 @@ This tool is a Python 3 program: it requires a basic [Python](http://www.python.
 
 It requires [QPDF](http://qpdf.sourceforge.net) in order to modify compressed PDF files. QPDF distributes under [Artistic license v2](http://opensource.org/licenses/artistic-license-2.0.php) from the Perl Foundation.
 
-Additionally, it requires [`pdflatex`](http://www.ctan.org) to build samples for the tests. The TeX framework, including `pdflatex`, distributes under [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html) from the GNU Software Foundation.
+Additionally, it requires [GNU Make](http://www.gnu.org/software/make/) and [`pdflatex`](http://www.ctan.org) to build samples for the tests. The TeX framework, including `pdflatex`, distributes under [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html), and Make distributes under [GPLv3](http://www.gnu.org/licenses/gpl-3.0.html), both from the GNU Software Foundation.
 
 ### Setup
 
-You can find the latest version packaged on the [releases page](../../releases). The current version is [0.0 beta](../../releases/tag/v0.0b): [tgz](../../archive/v0.0b.tar.gz) — [zip](../../archive/v0.0b.zip).
+You can find the latest version packaged on the [releases page](../../releases). The current version is 0.0 beta: [tgz](../../archive/v0.0b.tar.gz) — [zip](../../archive/v0.0b.zip).
+
+Alternatively, you can clone the git repository at: `github.com/ncanceill/pdf_hide.git`
+
+You can run the tests with: `make tests`
+
+You can install the package (as root) on your system's Python path with: `make install` or `./setup.py install`
 
 ## Project status
 
-Current version is 0.0 beta
+Current version is [0.0 beta](../../releases/tag/v0.0b).
+
+Please check the [project status](../../wiki/About#status) for more details.
 
 ### Stability
 
 The current version is UNSTABLE and should not be run in production.
+
+The `master` branch is UNSTABLE and should not be run in production.
 
 ### Changelog
 
@@ -68,7 +78,7 @@ General rule: any contributions are welcome.
 
 Do not hesitate to [drop an issue](../../issues/new) if you found a bug, if you either want to see a new feature or wish to suggest an improvement, or even if you simply have a question.
 
-Please check the [contributions status](../../wiki/contribute#status) if you want to get involved.
+Please check the [contributions status](../../wiki/Contribute#status) if you want to get involved.
 
 ## License information
 
