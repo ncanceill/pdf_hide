@@ -41,6 +41,7 @@ __version__ = "0.0b"
 # MAIN CLASS
 #
 
+# TODO: extract functions which need not a class
 # Handle 015 and 116 numeral integers, and binary strings, and other stuff
 class Numerals:
 
@@ -87,8 +88,13 @@ class Numerals:
 	def num_to_binstr(self,num,nbits):
 		return self.pad_binstr(bin(num)[2:],nbits)
 
-	# Encodes a string into a binary string based on the ASCII codes (e.g. "a" returns "01100001")
+	# Encodes a string into a binary string based on the ASCII codes
+	# (e.g. "a" returns "01100001")
 	def str_to_binstr(self,str):
+		# Hack for bytes instead of string
+		#TODO: do that better and include little endian
+		if isinstance(str,type(b'')):
+			return self.bstr_to_binstr_bige(str)
 		if str.__len__() < 1:
 			return ""
 		else:
@@ -97,14 +103,16 @@ class Numerals:
 				result += self.num_to_binstr(ord(c),8)
 			return result
 
-	# Encodes bytes into a big-endian binary string codes (e.g. b"\xac" returns "0010101100" if n is 5)
+	# Encodes bytes into a big-endian binary string codes
+	# (e.g. b"\xac" returns "0010101100" if n is 5)
 	def bstr_to_binstr_bige(self,bstr):
 		if str.__len__() < 1:
 			return ""
 		else:
 			return self.pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:])
 
-	# Encodes bytes into a little-endian binary string codes (e.g. b"\xac" returns "0011010100" if n is 5)
+	# Encodes bytes into a little-endian binary string codes
+	# (e.g. b"\xac" returns "0011010100" if n is 5)
 	def bstr_to_binstr_littlee(self,bstr):
 		if str.__len__() < 1:
 			return ""
