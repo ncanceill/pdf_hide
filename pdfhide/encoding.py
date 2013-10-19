@@ -74,6 +74,16 @@ class Numerals:
 			b = "0" + b
 		return b
 
+	def pad_binstr_bige(self,b,nbits):
+		for i in range(1,b.__len__() % nbits):
+			b = "0" + b
+		return b
+
+	def pad_binstr_littlee(self,b,nbits):
+		for i in range(1,b.__len__() % nbits):
+			b = b + "0"
+		return b
+
 	def num_to_binstr(self,num,nbits):
 		return self.pad_binstr(bin(num)[2:],nbits)
 
@@ -86,6 +96,20 @@ class Numerals:
 			for c in str:
 				result += self.num_to_binstr(ord(c),8)
 			return result
+
+	# Encodes bytes into a big-endian binary string codes (e.g. b"\xac" returns "0010101100" if n is 5)
+	def bstr_to_binstr_bige(self,bstr):
+		if str.__len__() < 1:
+			return ""
+		else:
+			return self.pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:])
+
+	# Encodes bytes into a little-endian binary string codes (e.g. b"\xac" returns "0011010100" if n is 5)
+	def bstr_to_binstr_littlee(self,bstr):
+		if str.__len__() < 1:
+			return ""
+		else:
+			return self.pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:])
 
 	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a character
 	def binstr_to_ch(self,str):
