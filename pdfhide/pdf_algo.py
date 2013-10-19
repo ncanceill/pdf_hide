@@ -431,7 +431,7 @@ class PDF_stego:
 		return tjs
 
 	# Extracts data from PDF file using derived_key, outputs extracted data to
-	def extract(self,derived_key):
+	def extract(self,derived_key,binary=False):
 		self.print_conf()
 		self.tj_count = 0
 		self.tj_count_valid = 0

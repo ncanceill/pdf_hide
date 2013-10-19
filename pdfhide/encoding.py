@@ -106,18 +106,18 @@ class Numerals:
 	# Encodes bytes into a big-endian binary string codes
 	# (e.g. b"\xac" returns "0010101100" if n is 5)
 	def bstr_to_binstr_bige(self,bstr):
-		if str.__len__() < 1:
+		if bstr.__len__() < 1:
 			return ""
 		else:
-			return self.pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:])
+			return self.pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:],self.n)
 
 	# Encodes bytes into a little-endian binary string codes
 	# (e.g. b"\xac" returns "0011010100" if n is 5)
 	def bstr_to_binstr_littlee(self,bstr):
-		if str.__len__() < 1:
+		if bstr.__len__() < 1:
 			return ""
 		else:
-			return self.pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:])
+			return self.pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:],self.n)
 
 	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a character
 	def binstr_to_ch(self,str):
@@ -133,6 +133,10 @@ class Numerals:
 
 	# Returns the 20-byte SHA1 digest of a string as an hexadecimal string
 	def digest(self,str):
+		# Hack for bytes instead of string
+		#TODO: do that better
+		if isinstance(str,type(b'')):
+			return hashlib.sha1(str).hexdigest()
 		return hashlib.sha1(str.encode('utf-8')).hexdigest()
 
 	#
