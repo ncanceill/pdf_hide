@@ -1,9 +1,12 @@
 # DISCLAIMER
 
 Distributed under GNU General Public License v3
+
 This program comes with ABSOLUTELY NO WARRANTY.
+
 This is free software, and you are welcome to
 redistribute it under certain conditions.
+
 PDF_HIDE  Copyright (C) 2013  Nicolas Canceill
 
 ## LICENSE
@@ -17,7 +20,9 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-Please see [LICENSE.md](LICENSE.md) or http://www.gnu.org/licenses/ for details.
+Please see [LICENSE.md](LICENSE.md) or
+[http://www.gnu.org/licenses/](http://www.gnu.org/licenses/)
+for details.
 
 ## WARRANTY
 
@@ -44,6 +49,8 @@ SUCH DAMAGES.
 
 ## NATIONAL REGULATIONS
 
+This program makes use of cryptographic and steganographic technologies.
+
 In an ideal world every honest person would have the right to use
 encryption and steganography. Unfortunately, this isn't an ideal world.
 
@@ -51,5 +58,6 @@ You are responsible for making sure that the laws, local rules, and
 patents or intellectual property regulations, that may apply in the
 nation you are in, allow you to possess and use this program.
 
-Please check with you local authorities, or see http://www.cryptolaw.org
+Please check with you local authorities, or see
+[http://www.cryptolaw.org](http://www.cryptolaw.org)
 for details.
