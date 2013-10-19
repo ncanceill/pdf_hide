@@ -255,15 +255,15 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
-	def test_algo_customrange_embed(self):
+	def test_algoi_customrange_embed(self):
 		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,customrange=True)
 		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
 		self.assertTrue(result > 0)
-	def test_algo_customrange_extract(self):
+	def test_algoi_customrange_extract(self):
 		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True,customrange=True)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
-	def test_algo_customrange_resultchk(self):
+	def test_algoi_customrange_resultchk(self):
 		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
