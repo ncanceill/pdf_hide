@@ -85,10 +85,10 @@ class Numerals:
 			b = b + "0"
 		return b
 
-	def tail_binstr_bige(self,b):
+	def tail_bige(self,b):
 		return b[b.__len__()%8:]
 
-	def tail_binstr_littlee(self,b,nbits):
+	def tail_littlee(self,b,nbits):
 		return b[:b.__len__()-(b.__len__()%8)-1]
 
 	def num_to_binstr(self,num,nbits):
@@ -132,7 +132,7 @@ class Numerals:
 
 	# Encodes an 8-bit number (passed-in as a binary string, e.g. "01000110")
 	# into a big endian byte
-	def binstr_to_bytes_bige(self,str):
+	def binstr_to_byte_bige(self,str):
 		return int(str,2).to_bytes(1,"big")
 
 	# Encodes an ASCII code (passed-in as an hexadecimal string)
