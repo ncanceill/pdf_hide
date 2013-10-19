@@ -63,7 +63,9 @@ s_long = "sample/test_long"
 s_embed = "sample/test_e.pdf"
 s_msg = "sample/msg"
 
-msg="123456ThisIsA\n=|__TEST__|="
+msg="""123456ThisIsA\n=|__TEST__|=
+
+CAN   YOU\tTEST!?"""
 key="S3cr3|-"
 
 # Log
