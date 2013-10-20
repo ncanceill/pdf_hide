@@ -122,7 +122,7 @@ def main():
 		  action="store_true",
 		  dest="customrange",
 		  default=False,
-		  help="use data in [-450,-250] without -333 and -334 (ignored with original algo, should always be used in combination with --no-random when embedding)"
+		  help="use data in [-450,-250] without -333 and -334 (ignored with original algo, will force --no-random when embedding)"
 		  )
 	# CLI - Verbosity
 	group_verb = parser.add_mutually_exclusive_group()
@@ -151,7 +151,7 @@ def main():
 		rl.print_splash()
 	if args.action == "embed":
 		if args.key == None:
-			args.key = getpass.getpass("Please enter stego-key: ")
+			args.key = getpass.getpass("Please enter key: ")
 		ps = pdf_algo.PDF_stego(
 			  args.filename,
 			  rl,
@@ -169,7 +169,7 @@ def main():
 		exit(result)
 	elif args.action == "extract":
 		if args.key == None:
-			args.key = getpass.getpass("Please enter derived-key: ")
+			args.key = getpass.getpass("Please enter key: ")
 		ps = pdf_algo.PDF_stego(
 			  args.filename,
 			  rl,
