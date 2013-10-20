@@ -76,12 +76,12 @@ class Numerals:
 		return b
 
 	def pad_binstr_bige(self,b,nbits):
-		for i in range(1,b.__len__() % nbits):
+		while b.__len__() % nbits > 0:
 			b = "0" + b
 		return b
 
 	def pad_binstr_littlee(self,b,nbits):
-		for i in range(1,b.__len__() % nbits):
+		while b.__len__() % nbits > 0:
 			b = b + "0"
 		return b
 

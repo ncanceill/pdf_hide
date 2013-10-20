@@ -63,9 +63,7 @@ s_long = "sample/test_long"
 s_embed = "sample/test_e.pdf"
 s_msg = "sample/msg"
 
-msg="""123456ThisIsA\n=|__TEST__|=
-
-CAN   YOU\tTEST!?"""
+msg=os.urandom(16)
 key="S3cr3|-"
 
 # Log
@@ -113,7 +111,7 @@ class DefaultAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algodef_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -144,7 +142,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customred_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -157,7 +155,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customnbit_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -170,7 +168,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customrange_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -183,7 +181,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_full_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -207,7 +205,7 @@ class DefaultIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoidef_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -238,7 +236,7 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customred_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -251,7 +249,7 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customnbit_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -264,7 +262,7 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customrange_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
