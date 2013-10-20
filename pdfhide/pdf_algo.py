@@ -198,7 +198,7 @@ class PDF_stego:
 		#return [False, jitter + 1]
 		self.tj_count += 1
 		if self.improve:
-			if ch_two < self.redundancy or num == None or (self.customrange and (val > -257 or val < -447 or (val < -320 and val > -337))):
+			if ch_two < self.redundancy or num == None or (self.customrange and (val > -257 or val < -447 or (val < -319 and val > -337))):
 				# Use TJ op for a random value
 				if self.norandom:
 					return [False,val]
@@ -398,7 +398,7 @@ class PDF_stego:
 
 	def extract_op(self,val,ch_two):
 		self.tj_count += 1
-		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -257 or val < -447 or (val < -320 and val > -337))):
+		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -257 or val < -448 or (val < -320 and val > -337))):
 			# Do not use TJ op
 			return 0
 		self.tj_count_valid += 1
