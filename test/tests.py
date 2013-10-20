@@ -48,10 +48,10 @@ __version__ = "0.0b"
 #
 
 # Random seeds: use specific numbers to reproduce tests
-RANDOM_SEED=os.urandom(16)
-DATA_LEN=random.randrange(64)
+RANDOM_SEED=os.urandom(16) #TODO: check compatibility
+DATA_LEN=random.randrange(1,64) #TODO: include size in docs
 msg=os.urandom(DATA_LEN)
-KEY_LEN=random.randrange(64)
+KEY_LEN=random.randrange(64) #TODO: include size and input type in docs
 key=''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for x in range(KEY_LEN))
 
 # Log level: use logger.DEBUG to debug
