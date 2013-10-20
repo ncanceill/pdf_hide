@@ -47,8 +47,12 @@ __version__ = "0.0b"
 # CONFIG
 #
 
-# Random seed: use a specific number to reproduce tests
+# Random seeds: use specific numbers to reproduce tests
 RANDOM_SEED=os.urandom(16)
+DATA_LEN=random.randrange(64)
+msg=os.urandom(DATA_LEN)
+KEY_LEN=random.randrange(64)
+key=''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for x in range(KEY_LEN))
 
 # Log level: use logger.DEBUG to debug
 LOG_LEVEL=logger.CRITICAL
@@ -64,8 +68,6 @@ s_long = "sample/test_long"
 s_embed = "sample/test_e.pdf"
 s_msg = "sample/msg"
 
-msg=os.urandom(27)
-key=''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for x in range(10))
 
 # Log
 rl = logger.rootLogger(LOG_LEVEL)
