@@ -78,7 +78,7 @@ def main():
 		  help="Embed message inside PDF file"
 		  )
 	parser_embed.add_argument("data",
-		  type=argparse.FileType(),
+		  type=argparse.FileType("rb"),
 		  help="the data file to embed (or stdin)"
 		  )
 	parser_embed.add_argument("--no-random",
