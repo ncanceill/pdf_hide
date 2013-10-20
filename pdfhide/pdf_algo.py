@@ -199,6 +199,8 @@ class PDF_stego:
 		self.tj_count += 1
 		if self.improve:
 			if ch_two < self.redundancy or num == None or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
+				# Custom range values work because of the hack normalrange/customrange
+				# TODO: update docs!!!
 				# Use TJ op for a random value
 				if self.norandom or self.customrange:
 					return [False,val]
@@ -207,11 +209,11 @@ class PDF_stego:
 				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one) + 1]
 			# Use TJ op for data
 			self.tj_count_valid += 1
-			normalrange = 1
+			normalrange = 1 # Hack for custom range (do not shift by 1), TODO: do that better and include in docs
 			if self.customrange:
 				normalrange = 0
 			if val < 0:
-				self.l.debug("Embed num ["+str(num)+"] as [ "+str(-abs(val) + (abs(val) % (2**self.nbits)) - num - 1)+" ("+str(val)+") ]")
+				#self.l.debug("Embed num ["+str(num)+"] as [ "+str(-abs(val) + (abs(val) % (2**self.nbits)) - num - 1)+" ("+str(val)+") ]")
 				return [True,-abs(val) + (abs(val) % (2**self.nbits)) - num - normalrange]
 			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + normalrange]
 		if ch_two < self.redundancy or num == None:
@@ -490,7 +492,7 @@ class PDF_stego:
 		# Jitter data
 		#for t in tjs:
 		#	self.l.debug("Extracted num ["+str((t-1)%(2**self.nbits))+"] from ["+str(t)+"]")
-		normalrange = 1
+		normalrange = 1 # Hack for custom range (do not shift by 1), TODO: do that better and include in docs
 		if self.customrange:
 			normalrange = 0
 		tjs = list(map(lambda x: (x - jitter - normalrange) % (2**self.nbits), tjs))
