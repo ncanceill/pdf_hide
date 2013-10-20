@@ -47,10 +47,10 @@ __version__ = "0.0b"
 #
 
 # Random seed: use a specific number to reproduce tests
-RANDOM_SEED=os.urandom(16)
+RANDOM_SEED=b'\xf0\x18=\x19\xb2\xce\xbd\xeb\xb1\xe3\x04\xa6\x95\x11\xf4/'#os.urandom(16)
 
 # Log level: use logger.DEBUG to debug
-LOG_LEVEL=logger.CRITICAL
+LOG_LEVEL=logger.DEBUG#CRITICAL
 
 #
 #
@@ -63,7 +63,7 @@ s_long = "sample/test_long"
 s_embed = "sample/test_e.pdf"
 s_msg = "sample/msg"
 
-msg=os.urandom(27)
+msg=b'\x01\x94\x9c3?\x04\xc6\x7f\xc1\xb2\x81S\x823\xcf&\x84\xe1y\xa9Z[h/xM\x0f2\xee`\x0f\xb6'#os.urandom(32)
 key="S3cr3|-"
 
 # Log
