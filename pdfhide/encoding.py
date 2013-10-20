@@ -86,12 +86,12 @@ class Numerals:
 		return b
 
 	def tail_bige(self,b):
-		if int(b[:b.__len__()%8],2) > 0:
+		if b[:b.__len__()%8].__len__() > 0 and int(b[:b.__len__()%8],2) > 0:
 			return self.pad_binstr_bige(b,8)
 		return b[b.__len__()%8:]
 
 	def tail_littlee(self,b):
-		if int(b[b.__len__()-(b.__len__()%8):],2) > 0:
+		if b[b.__len__()-(b.__len__()%8):].__len__() > 0 and int(b[b.__len__()-(b.__len__()%8):],2) > 0:
 			return self.pad_binstr_littlee(b,8)
 		return b[:b.__len__()-(b.__len__()%8)-1]
 
