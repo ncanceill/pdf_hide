@@ -63,7 +63,7 @@ s_long = "sample/test_long"
 s_embed = "sample/test_e.pdf"
 s_msg = "sample/msg"
 
-msg=os.urandom(16)
+msg=os.urandom(27)
 key="S3cr3|-"
 
 # Log
@@ -72,6 +72,7 @@ rl = logger.rootLogger(LOG_LEVEL)
 def print_begin(case):
 	print("========== BEGIN TEST " + case.upper() + " ==========")
 	print("========== SEED TEST = " + str(RANDOM_SEED))
+	print("========== DATA TEST = " + str(msg))
 
 def print_end(case):
 	print("========== END TEST " + case.upper() + " ==========")
