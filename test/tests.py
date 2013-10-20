@@ -2,6 +2,7 @@
 import unittest
 import os
 import random
+import string
 
 from pdfhide import logger
 from pdfhide import pdf_algo
@@ -46,8 +47,12 @@ __version__ = "0.0b"
 # CONFIG
 #
 
-# Random seed: use a specific number to reproduce tests
-RANDOM_SEED=os.urandom(16)
+# Random seeds: use specific numbers to reproduce tests
+RANDOM_SEED=os.urandom(16) #TODO: check compatibility
+DATA_LEN=random.randrange(1,64) #TODO: include size in docs
+msg=os.urandom(DATA_LEN)
+KEY_LEN=random.randrange(64) #TODO: include size and input type in docs
+key=''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for x in range(KEY_LEN))
 
 # Log level: use logger.DEBUG to debug
 LOG_LEVEL=logger.CRITICAL
@@ -63,10 +68,6 @@ s_long = "sample/test_long"
 s_embed = "sample/test_e.pdf"
 s_msg = "sample/msg"
 
-msg="""123456ThisIsA\n=|__TEST__|=
-
-CAN   YOU\tTEST!?"""
-key="S3cr3|-"
 
 # Log
 rl = logger.rootLogger(LOG_LEVEL)
@@ -74,6 +75,8 @@ rl = logger.rootLogger(LOG_LEVEL)
 def print_begin(case):
 	print("========== BEGIN TEST " + case.upper() + " ==========")
 	print("========== SEED TEST = " + str(RANDOM_SEED))
+	print("========== DATA TEST = " + str(msg))
+	print("========== KEY TEST = " + str(key))
 
 def print_end(case):
 	print("========== END TEST " + case.upper() + " ==========")
@@ -113,7 +116,7 @@ class DefaultAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algodef_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -144,7 +147,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customred_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -157,7 +160,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customnbit_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -170,7 +173,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_customnorandom_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -183,7 +186,7 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_full_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -207,7 +210,7 @@ class DefaultIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoidef_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -238,7 +241,7 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customred_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -251,7 +254,7 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customnbit_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
@@ -264,7 +267,7 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_customrange_resultchk(self):
-		output_file = open(s_msg)
+		output_file = open(s_msg,"rb")
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)

@@ -41,6 +41,7 @@ __version__ = "0.0b"
 # MAIN CLASS
 #
 
+# TODO: extract functions which need not a class
 # Handle 015 and 116 numeral integers, and binary strings, and other stuff
 class Numerals:
 
@@ -74,11 +75,36 @@ class Numerals:
 			b = "0" + b
 		return b
 
+	def pad_binstr_bige(self,b,nbits):
+		while b.__len__() % nbits > 0:
+			b = "0" + b
+		return b
+
+	def pad_binstr_littlee(self,b,nbits):
+		while b.__len__() % nbits > 0:
+			b = b + "0"
+		return b
+
+	def tail_bige(self,b):
+		if b[:b.__len__()%8].__len__() > 0 and int(b[:b.__len__()%8],2) > 0:
+			return self.pad_binstr_bige(b,8)
+		return b[b.__len__()%8:]
+
+	def tail_littlee(self,b):
+		if b[b.__len__()-(b.__len__()%8):].__len__() > 0 and int(b[b.__len__()-(b.__len__()%8):],2) > 0:
+			return self.pad_binstr_littlee(b,8)
+		return b[:b.__len__()-(b.__len__()%8)-1]
+
 	def num_to_binstr(self,num,nbits):
 		return self.pad_binstr(bin(num)[2:],nbits)
 
-	# Encodes a string into a binary string based on the ASCII codes (e.g. "a" returns "01100001")
+	# Encodes a string into a binary string based on the ASCII codes
+	# (e.g. "a" returns "01100001")
 	def str_to_binstr(self,str):
+		# Hack for bytes instead of string
+		#TODO: do that better and include little endian
+		if isinstance(str,type(b'')):
+			return self.bstr_to_binstr_bige(str)
 		if str.__len__() < 1:
 			return ""
 		else:
@@ -87,20 +113,48 @@ class Numerals:
 				result += self.num_to_binstr(ord(c),8)
 			return result
 
-	# Encodes a 4-bit number (passed-in as a binary string, e.g. "0110") into a character
+	# Encodes bytes into a big-endian binary string codes
+	# (e.g. b"\xac" returns "0010101100" if n is 5)
+	def bstr_to_binstr_bige(self,bstr):
+		if bstr.__len__() < 1:
+			return ""
+		else:
+			return self.pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:],self.n)
+
+	# Encodes bytes into a little-endian binary string codes
+	# (e.g. b"\xac" returns "0011010100" if n is 5)
+	def bstr_to_binstr_littlee(self,bstr):
+		if bstr.__len__() < 1:
+			return ""
+		else:
+			return self.pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:],self.n)
+
+	# Encodes an 8-bit number (passed-in as a binary string, e.g. "01100001" for a)
+	# into a character
 	def binstr_to_ch(self,str):
 		return chr(int(str,2) % 256)
 
-	# Encodes an ASCII code (passed-in as an hexadecimal string) into a numeral using mod(2^n)
+	# Encodes an 8-bit number (passed-in as a binary string, e.g. "01000110")
+	# into a big endian byte
+	def binstr_to_byte_bige(self,str):
+		return int(str,2).to_bytes(1,"big")
+
+	# Encodes an ASCII code (passed-in as an hexadecimal string)
+	# into a numeral using mod(2^n)
 	def hexstr_to_num(self,h):
 		return int(h,16) % (2**self.n)
 
-	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4) into a numeral (a "015" numeral if n is 4)
+	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4)
+	# into a numeral (a "015" numeral if n is 4)
 	def binstr_to_num(self,str):
 		return int(str,2) % (2**self.n)
 
 	# Returns the 20-byte SHA1 digest of a string as an hexadecimal string
 	def digest(self,str):
+		# Hack for bytes instead of string
+		#TODO: do that better
+		if isinstance(str,type(b'')):
+			return hashlib.sha1(str).hexdigest()
 		return hashlib.sha1(str.encode('utf-8')).hexdigest()
 
 	#

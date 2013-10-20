@@ -198,18 +198,24 @@ class PDF_stego:
 		#return [False, jitter + 1]
 		self.tj_count += 1
 		if self.improve:
-			if ch_two < self.redundancy or num == None or (self.customrange and (val > -257 or val < -447 or (val < -320 and val > -337))):
+			if ch_two < self.redundancy or num == None or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
+				# Custom range values work because of the hack normalrange/customrange
+				# TODO: update docs!!!
 				# Use TJ op for a random value
-				if self.norandom:
+				if self.norandom or self.customrange:
 					return [False,val]
 				if val < 0:
 					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one) + 1 )]
 				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one) + 1]
 			# Use TJ op for data
 			self.tj_count_valid += 1
+			normalrange = 1 # Hack for custom range (do not shift by 1), TODO: do that better and include in docs
+			if self.customrange:
+				normalrange = 0
 			if val < 0:
-				return [True,-abs(val) + (abs(val) % (2**self.nbits)) - num - 1]
-			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + 1]
+				#self.l.debug("Embed num ["+str(num)+"] as [ "+str(-abs(val) + (abs(val) % (2**self.nbits)) - num - 1)+" ("+str(val)+") ]")
+				return [True,-abs(val) + (abs(val) % (2**self.nbits)) - num - normalrange]
+			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + normalrange]
 		if ch_two < self.redundancy or num == None:
 			# Use TJ op for a random value
 			if self.norandom:
@@ -298,6 +304,8 @@ class PDF_stego:
 		new_file = b""
 		n = encoding.Numerals(self.nbits)
 		# Get the numerals to embed from the key and the message
+		self.l.debug(self.print_it("Data to embed",data))
+		self.l.debug(self.print_it("Data to embed (binary)",n.str_to_binstr(data)))
 		nums = n.encode_msg(data,passkey)
 		ind = nums[0] + nums[1] + nums[2]
 		self.tjs = []
@@ -396,7 +404,7 @@ class PDF_stego:
 
 	def extract_op(self,val,ch_two):
 		self.tj_count += 1
-		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -257 or val < -447 or (val < -320 and val > -337))):
+		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
 			# Do not use TJ op
 			return 0
 		self.tj_count_valid += 1
@@ -431,7 +439,7 @@ class PDF_stego:
 		return tjs
 
 	# Extracts data from PDF file using derived_key, outputs extracted data to
-	def extract(self,derived_key):
+	def extract(self,derived_key,binary=True):
 		self.print_conf()
 		self.tj_count = 0
 		self.tj_count_valid = 0
@@ -482,7 +490,12 @@ class PDF_stego:
 		else:
 			jitter = 0
 		# Jitter data
-		tjs = list(map(lambda x: (x - jitter - 1) % (2**self.nbits), tjs))
+		#for t in tjs:
+		#	self.l.debug("Extracted num ["+str((t-1)%(2**self.nbits))+"] from ["+str(t)+"]")
+		normalrange = 1 # Hack for custom range (do not shift by 1), TODO: do that better and include in docs
+		if self.customrange:
+			normalrange = 0
+		tjs = list(map(lambda x: (x - jitter - normalrange) % (2**self.nbits), tjs))
 		tjs_ = tjs + tjs
 		# Extract data
 		k = start + 20
@@ -503,12 +516,18 @@ class PDF_stego:
 			return -1
 		else:
 			# Decode embedded data
+			self.l.debug(self.print_it("Raw data",embedded))
 			k = 0
 			bin_str = ""
 			while k < embedded.__len__():
 				bin = n.num_to_binstr(embedded[k],self.nbits)
 				if k == embedded.__len__() - 1:
-					missing = -(bin_str.__len__() % 8) % 8
+					if binary: # Hack for bytes instead of string
+					#TODO: do that better
+						missing = self.nbits
+					else:
+						missing = -(bin_str.__len__() % 8) % 8
+					self.l.debug(self.print_it("Missing bits",missing))
 					if missing > self.nbits:
 						self.l.error("Trailing data is too long and cannot be decoded")
 						self.l.debug(self.print_it("Raw data (corrupted)",embedded))
@@ -517,8 +536,14 @@ class PDF_stego:
 				else:
 					bin_str += bin
 				k += 1
-			emb_chars = map(n.binstr_to_ch,n.split_len(bin_str,8))
-			emb_str = ""
+			self.l.debug(self.print_it("Raw binary data",bin_str))
+			if binary: # Hack for bytes instead of string
+			#TODO: do that better and include little endian
+				emb_chars = map(n.binstr_to_byte_bige,n.split_len(n.tail_bige(bin_str),8))
+				emb_str = b""
+			else:
+				emb_chars = map(n.binstr_to_ch,n.split_len(bin_str,8))
+				emb_str = ""
 			for ch in emb_chars:
 				emb_str += ch
 			#
@@ -536,11 +561,14 @@ class PDF_stego:
 				return -1
 			else:
 				self.l.info("Done extracting.")
-				output_file = open(self.output,"w")
+				if binary: # Hack for bytes instead of string
+					output_file = open(self.output,"wb")
+				else:
+					output_file = open(self.output,"w")
 				output_file.write(emb_str)
 				output_file.close()
 				self.l.info("Output file: \"" + self.output + "\"")
-				self.l.debug(self.print_it("Extracted data","\"" + emb_str + "\""))
+				self.l.debug(self.print_it("Extracted data","\"" + str(emb_str) + "\""))
 				self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
 				self.l.debug(self.print_it("Total nb of valid TJ ops",self.tj_count_valid))
 				self.l.debug(self.print_it("Total nb of valid TJ ops used",embedded.__len__() + 40))
