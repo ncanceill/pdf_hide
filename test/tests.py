@@ -161,25 +161,25 @@ class SpecialAlgoTestCase(unittest.TestCase):
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
-	def test_algo_customrange_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,customrange=True)
+	def test_algo_customnorandom_embed(self):
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed)
 		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
 		self.assertTrue(result > 0)
-	def test_algo_customrange_extract(self):
-		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,customrange=True)
+	def test_algo_customnorandom_extract(self):
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
-	def test_algo_customrange_resultchk(self):
+	def test_algo_customnorandom_resultchk(self):
 		output_file = open(s_msg)
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
 	def test_algo_full_embed(self):
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,red=self.redundancy,nbits=self.nbits,customrange=True)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,red=self.redundancy,nbits=self.nbits)
 		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
 		self.assertTrue(result > 0)
 	def test_algo_full_extract(self):
-		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,red=self.redundancy,nbits=self.nbits,customrange=True)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,red=self.redundancy,nbits=self.nbits)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algo_full_resultchk(self):
