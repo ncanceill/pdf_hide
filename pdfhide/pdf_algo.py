@@ -198,18 +198,22 @@ class PDF_stego:
 		#return [False, jitter + 1]
 		self.tj_count += 1
 		if self.improve:
-			if ch_two < self.redundancy or num == None or (self.customrange and (val > -257 or val < -447 or (val < -319 and val > -337))):
+			if ch_two < self.redundancy or num == None or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
 				# Use TJ op for a random value
-				if self.norandom:
+				if self.norandom or self.customrange:
 					return [False,val]
 				if val < 0:
 					return [False,-abs(val) + (abs(val) % (2**self.nbits)) - (int((2**self.nbits - 1) * ch_one) + 1 )]
 				return [False,abs(val) - (abs(val) % (2**self.nbits)) + int((2**self.nbits - 1) * ch_one) + 1]
 			# Use TJ op for data
 			self.tj_count_valid += 1
+			normalrange = 1
+			if self.customrange:
+				normalrange = 0
 			if val < 0:
-				return [True,-abs(val) + (abs(val) % (2**self.nbits)) - num - 1]
-			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + 1]
+				self.l.debug("Embed num ["+str(num)+"] as [ "+str(-abs(val) + (abs(val) % (2**self.nbits)) - num - 1)+" ("+str(val)+") ]")
+				return [True,-abs(val) + (abs(val) % (2**self.nbits)) - num - normalrange]
+			return [True,abs(val) - (abs(val) % (2**self.nbits)) + num + normalrange]
 		if ch_two < self.redundancy or num == None:
 			# Use TJ op for a random value
 			if self.norandom:
@@ -398,7 +402,7 @@ class PDF_stego:
 
 	def extract_op(self,val,ch_two):
 		self.tj_count += 1
-		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -257 or val < -448 or (val < -320 and val > -337))):
+		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
 			# Do not use TJ op
 			return 0
 		self.tj_count_valid += 1
@@ -484,7 +488,12 @@ class PDF_stego:
 		else:
 			jitter = 0
 		# Jitter data
-		tjs = list(map(lambda x: (x - jitter - 1) % (2**self.nbits), tjs))
+		#for t in tjs:
+		#	self.l.debug("Extracted num ["+str((t-1)%(2**self.nbits))+"] from ["+str(t)+"]")
+		normalrange = 1
+		if self.customrange:
+			normalrange = 0
+		tjs = list(map(lambda x: (x - jitter - normalrange) % (2**self.nbits), tjs))
 		tjs_ = tjs + tjs
 		# Extract data
 		k = start + 20
