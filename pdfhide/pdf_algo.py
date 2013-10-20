@@ -299,6 +299,7 @@ class PDF_stego:
 		n = encoding.Numerals(self.nbits)
 		# Get the numerals to embed from the key and the message
 		self.l.debug(self.print_it("Data to embed",data))
+		self.l.debug(self.print_it("Data to embed (binary)",n.str_to_binstr(data)))
 		nums = n.encode_msg(data,passkey)
 		ind = nums[0] + nums[1] + nums[2]
 		self.tjs = []
