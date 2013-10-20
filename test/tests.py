@@ -2,6 +2,7 @@
 import unittest
 import os
 import random
+import string
 
 from pdfhide import logger
 from pdfhide import pdf_algo
@@ -64,7 +65,7 @@ s_embed = "sample/test_e.pdf"
 s_msg = "sample/msg"
 
 msg=os.urandom(27)
-key="S3cr3|-"
+key=''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for x in range(10))
 
 # Log
 rl = logger.rootLogger(LOG_LEVEL)
@@ -73,6 +74,7 @@ def print_begin(case):
 	print("========== BEGIN TEST " + case.upper() + " ==========")
 	print("========== SEED TEST = " + str(RANDOM_SEED))
 	print("========== DATA TEST = " + str(msg))
+	print("========== KEY TEST = " + str(key))
 
 def print_end(case):
 	print("========== END TEST " + case.upper() + " ==========")
