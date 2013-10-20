@@ -53,6 +53,7 @@ DATA_LEN=random.randrange(1,64) #TODO: include size in docs
 msg=os.urandom(DATA_LEN)
 KEY_LEN=random.randrange(64) #TODO: include size and input type in docs
 key=''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for x in range(KEY_LEN))
+# TODO: test key with all unicode chars except linebreaks
 
 # Log level: use logger.DEBUG to debug
 LOG_LEVEL=logger.CRITICAL
