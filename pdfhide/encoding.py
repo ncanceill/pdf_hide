@@ -35,176 +35,159 @@ __version__ = "0.0b"
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 
-#
-#
-#
-# MAIN CLASS
-#
+# TODO: doc
 
-# TODO: extract functions which need not a class
+#
+#
+# FUNCTIONS
+#
 # Handle 015 and 116 numeral integers, and binary strings, and other stuff
-class Numerals:
+#
 
-	#
-	#
-	# INITIALIZATION
-	#
+#
+# Binary strings
 
-	#
-	# Setting
+def pad_binstr(b,nbits):
+	while b.__len__() < nbits:
+		b = "0" + b
+	return b
 
-	# The number of bit to use
-	n = 4
+def pad_binstr_bige(b,nbits):
+	while b.__len__() % nbits > 0:
+		b = "0" + b
+	return b
 
-	#
-	# Init
+def pad_binstr_littlee(b,nbits):
+	while b.__len__() % nbits > 0:
+		b = b + "0"
+	return b
 
-	def __init__(self,nbits):
-		self.n = nbits
+def pad_str(msg,nbits):
+	return [pad_binstr(bin,nbits) for bin in split_len(str_to_binstr(msg,nbits),nbits)]
 
-	#
-	#
-	# FUNCTIONS
-	#
+def tail_bige(b):
+	if b[:b.__len__()%8].__len__() > 0 and int(b[:b.__len__()%8],2) > 0:
+		return pad_binstr_bige(b,8)
+	return b[b.__len__()%8:]
 
-	#
-	# Binary strings
+def tail_littlee(b):
+	if b[b.__len__()-(b.__len__()%8):].__len__() > 0 and int(b[b.__len__()-(b.__len__()%8):],2) > 0:
+		return pad_binstr_littlee(b,8)
+	return b[:b.__len__()-(b.__len__()%8)-1]
 
-	def pad_binstr(self,b,nbits):
-		while b.__len__() < nbits:
-			b = "0" + b
-		return b
+def num_to_binstr(num,nbits):
+	return pad_binstr(bin(num)[2:],nbits)
 
-	def pad_binstr_bige(self,b,nbits):
-		while b.__len__() % nbits > 0:
-			b = "0" + b
-		return b
+# Encodes a string into a binary string based on the ASCII codes
+# (e.g. "a" returns "01100001")
+def str_to_binstr(str,nbits):
+	# Hack for bytes instead of string
+	#TODO: do that better and include little endian
+	if isinstance(str,type(b'')):
+		return bstr_to_binstr_bige(str,nbits)
+	if str.__len__() < 1:
+		return ""
+	else:
+		result = ""
+		for c in str:
+			result += num_to_binstr(ord(c),8)
+		return result
 
-	def pad_binstr_littlee(self,b,nbits):
-		while b.__len__() % nbits > 0:
-			b = b + "0"
-		return b
+# Encodes bytes into a big-endian binary string codes
+# (e.g. b"\xac" returns "0010101100" if n is 5)
+def bstr_to_binstr_bige(bstr,nbits):
+	if bstr.__len__() < 1:
+		return ""
+	else:
+		return pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:],nbits)
 
-	def tail_bige(self,b):
-		if b[:b.__len__()%8].__len__() > 0 and int(b[:b.__len__()%8],2) > 0:
-			return self.pad_binstr_bige(b,8)
-		return b[b.__len__()%8:]
+# Encodes bytes into a little-endian binary string codes
+# (e.g. b"\xac" returns "0011010100" if n is 5)
+def bstr_to_binstr_littlee(bstr,nbits):
+	if bstr.__len__() < 1:
+		return ""
+	else:
+		return pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:],nbits)
 
-	def tail_littlee(self,b):
-		if b[b.__len__()-(b.__len__()%8):].__len__() > 0 and int(b[b.__len__()-(b.__len__()%8):],2) > 0:
-			return self.pad_binstr_littlee(b,8)
-		return b[:b.__len__()-(b.__len__()%8)-1]
+# Encodes an 8-bit number (passed-in as a binary string, e.g. "01100001" for a)
+# into a character
+def binstr_to_ch(str):
+	return chr(int(str,2) % 256)
 
-	def num_to_binstr(self,num,nbits):
-		return self.pad_binstr(bin(num)[2:],nbits)
+# Encodes an 8-bit number (passed-in as a binary string, e.g. "01000110")
+# into a big endian byte
+def binstr_to_byte_bige(str):
+	return int(str,2).to_bytes(1,"big")
 
-	# Encodes a string into a binary string based on the ASCII codes
-	# (e.g. "a" returns "01100001")
-	def str_to_binstr(self,str):
-		# Hack for bytes instead of string
-		#TODO: do that better and include little endian
-		if isinstance(str,type(b'')):
-			return self.bstr_to_binstr_bige(str)
-		if str.__len__() < 1:
-			return ""
-		else:
-			result = ""
-			for c in str:
-				result += self.num_to_binstr(ord(c),8)
-			return result
+# Encodes an ASCII code (passed-in as an hexadecimal string)
+# into a numeral using mod(2^n)
+def hexstr_to_num(h,nbits):
+	return int(h,16) % (2**nbits)
 
-	# Encodes bytes into a big-endian binary string codes
-	# (e.g. b"\xac" returns "0010101100" if n is 5)
-	def bstr_to_binstr_bige(self,bstr):
-		if bstr.__len__() < 1:
-			return ""
-		else:
-			return self.pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:],self.n)
+# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4)
+# into a numeral (a "015" numeral if n is 4)
+def binstr_to_num(str,nbits):
+	return int(str,2) % (2**nbits)
 
-	# Encodes bytes into a little-endian binary string codes
-	# (e.g. b"\xac" returns "0011010100" if n is 5)
-	def bstr_to_binstr_littlee(self,bstr):
-		if bstr.__len__() < 1:
-			return ""
-		else:
-			return self.pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:],self.n)
+# Returns the 20-byte SHA1 digest of a string as an hexadecimal string
+def digest(str):
+	# Hack for bytes instead of string
+	#TODO: do that better
+	if isinstance(str,type(b'')):
+		return hashlib.sha1(str).hexdigest()
+	return hashlib.sha1(str.encode('utf-8')).hexdigest()
 
-	# Encodes an 8-bit number (passed-in as a binary string, e.g. "01100001" for a)
-	# into a character
-	def binstr_to_ch(self,str):
-		return chr(int(str,2) % 256)
+#
+# Sequences of numerals
 
-	# Encodes an 8-bit number (passed-in as a binary string, e.g. "01000110")
-	# into a big endian byte
-	def binstr_to_byte_bige(self,str):
-		return int(str,2).to_bytes(1,"big")
+# Splits a sequence into a list of sequences of specified length (the last one may be shorter)
+def split_len(seq,length):
+	return [seq[i:i+length] for i in range(0,len(seq),length)]
 
-	# Encodes an ASCII code (passed-in as an hexadecimal string)
-	# into a numeral using mod(2^n)
-	def hexstr_to_num(self,h):
-		return int(h,16) % (2**self.n)
+#
+# Encoding
 
-	# Encodes a n-bit number (passed-in as a binary string, e.g. "0110" if n is 4)
-	# into a numeral (a "015" numeral if n is 4)
-	def binstr_to_num(self,str):
-		return int(str,2) % (2**self.n)
+# Encodes a 20-byte SHA1 digest to a list of 20 numerals array according to the algo
+def digest_to_nums(d,nbits):
+	return [hexstr_to_num(dig,nbits) for dig in split_len(digest(d),2)]
 
-	# Returns the 20-byte SHA1 digest of a string as an hexadecimal string
-	def digest(self,str):
-		# Hack for bytes instead of string
-		#TODO: do that better
-		if isinstance(str,type(b'')):
-			return hashlib.sha1(str).hexdigest()
-		return hashlib.sha1(str.encode('utf-8')).hexdigest()
+# Encodes a message to a list of numerals according to the algo
+def msg_to_nums(msg,nbits):
+	return [binstr_to_num(str,nbits) for str in pad_str(msg,nbits)]
 
-	#
-	# Sequences of numerals
+# Encodes a message and a stego key according to the algo
+#
+# Returns a list n[]:
+# n[0] is the list of 20 numerals representing "FlagStr1"
+# n[1] is the list of numerals representing the message
+# n[2] is the list of 20 numerals representing "FlagStr2"
+def encode_msg(msg,key,nbits):
+	return [digest_to_nums(msg,nbits),msg_to_nums(msg,nbits),digest_to_nums(key,nbits)]
 
-	# Splits a sequence into a list of sequences of specified length (the last one may be shorter)
-	def split_len(self,seq,length):
-		return [seq[i:i+length] for i in range(0,len(seq),length)]
+# Encodes a derived key according to the algo
+#
+# Returns the list of 20 numerals representing "FlagStr"
+def encode_key(key,nbits):
+	return digest_to_nums(key,nbits)
 
-	#
-	# Encoding
+def decode(bin_str):
+	return [binstr_to_byte_bige(num) for num in split_len(tail_bige(bin_str),8)]
 
-	# Encodes a 20-byte SHA1 digest to a list of 20 numerals array according to the algo
-	def digest_to_nums(self,d):
-		return list(map(self.hexstr_to_num,self.split_len(self.digest(d),2)))
+#
+# Math
 
-	# Encodes a message to a list of numerals according to the algo
-	def msg_to_nums(self,msg):
-		return list(map(self.binstr_to_num,[self.pad_binstr(bin,self.n) for bin in self.split_len(self.str_to_binstr(msg),self.n)]))
+def avg(nums):
+	n = 0
+	for k in nums:
+		n += k
+	return float(n) / nums.__len__()
 
-	# Encodes a message and a stego key according to the algo
-	#
-	# Returns a list n[]:
-	# n[0] is the list of 20 numerals representing "FlagStr1"
-	# n[1] is the list of numerals representing the message
-	# n[2] is the list of 20 numerals representing "FlagStr2"
-	def encode_msg(self,msg,key):
-		return [self.digest_to_nums(msg),self.msg_to_nums(msg),self.digest_to_nums(key)]
-
-	# Encodes a derived key according to the algo
-	#
-	# Returns the list of 20 numerals representing "FlagStr"
-	def encode_key(self,key):
-		return self.digest_to_nums(key)
-
-	#
-	# Math
-
-	def avg(self,nums):
-		n = 0
-		for k in nums:
-			n += k
-		return float(n) / nums.__len__()
-
-	def mean(self,nums,nums_):
-		if nums.__len__() < nums_.__len__():
-			return 0.
-		n = 0
-		i = 0
-		while i < nums_.__len__():
-			n += (nums[i] - nums_[i])
-			i += 1
-		return float(n) / nums_.__len__()
+def mean(nums,nums_):
+	if nums.__len__() < nums_.__len__():
+		return 0.
+	n = 0
+	i = 0
+	while i < nums_.__len__():
+		n += (nums[i] - nums_[i])
+		i += 1
+	return float(n) / nums_.__len__()

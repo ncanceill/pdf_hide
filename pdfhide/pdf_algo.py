@@ -302,11 +302,10 @@ class PDF_stego:
 		driver.uncompress(self.input,self.input+".qdf")
 		cover_file = open(self.input + ".qdf","rb")
 		new_file = b""
-		n = encoding.Numerals(self.nbits)
 		# Get the numerals to embed from the key and the message
 		self.l.debug(self.print_it("Data to embed",data))
-		self.l.debug(self.print_it("Data to embed (binary)",n.str_to_binstr(data)))
-		nums = n.encode_msg(data,passkey)
+		self.l.debug(self.print_it("Data to embed (binary)",encoding.str_to_binstr(data,self.nbits)))
+		nums = encoding.encode_msg(data,passkey,self.nbits)
 		ind = nums[0] + nums[1] + nums[2]
 		self.tjs = []
 		if self.improve:
@@ -324,11 +323,11 @@ class PDF_stego:
 			jitter = 0
 		self.l.debug(self.print_it("FlagStr1 (CheckStr)",nums[0]))
 		self.l.debug(self.print_it("FlagStr2",nums[2]))
-		self.l.debug(self.print_it("Data",n.msg_to_nums(data)))
+		self.l.debug(self.print_it("Data",encoding.msg_to_nums(data,self.nbits)))
 		self.l.debug(self.print_it("Jitter",jitter))
 		# Initiate chaotic maps
 		if self.improve:
-			ch_one = random.Random(n.digest(data))
+			ch_one = random.Random(encoding.digest(data))
 			ch_two = random.Random(passkey)
 		else:
 			ch_one = chaos.Chaotic(self.mu_one,nums[2])
@@ -448,9 +447,8 @@ class PDF_stego:
 		# Only works for valid PDF files
 		driver.uncompress(self.input,self.input+".qdf")
 		embedding_file = open(self.input+".qdf",encoding="iso-8859-1")
-		n = encoding.Numerals(self.nbits)
 		# Get the numerals from the key
-		nums = n.encode_key(derived_key)
+		nums = encoding.encode_key(derived_key,self.nbits)
 		self.l.debug(self.print_it("FlagStr",nums))
 		# Initiate chaotic map
 		if self.improve:
@@ -520,7 +518,7 @@ class PDF_stego:
 			k = 0
 			bin_str = ""
 			while k < embedded.__len__():
-				bin = n.num_to_binstr(embedded[k],self.nbits)
+				bin = encoding.num_to_binstr(embedded[k],self.nbits)
 				if k == embedded.__len__() - 1:
 					if binary: # Hack for bytes instead of string
 					#TODO: do that better
@@ -539,10 +537,10 @@ class PDF_stego:
 			self.l.debug(self.print_it("Raw binary data",bin_str))
 			if binary: # Hack for bytes instead of string
 			#TODO: do that better and include little endian
-				emb_chars = map(n.binstr_to_byte_bige,n.split_len(n.tail_bige(bin_str),8))
+				emb_chars = encoding.decode(bin_str)
 				emb_str = b""
 			else:
-				emb_chars = map(n.binstr_to_ch,n.split_len(bin_str,8))
+				emb_chars = [encoding.binstr_to_ch(num,self.nbits) for num in encoding.split_len(bin_str,8)]
 				emb_str = ""
 			for ch in emb_chars:
 				emb_str += ch
@@ -550,12 +548,12 @@ class PDF_stego:
 			# BEGIN DEBUG CHECKS
 			#
 			if self.l.DEBUG:#TODO: do that better
-				self.debug_extract_print_sum(n.encode_key(emb_str),checkstr,embedded)
+				self.debug_extract_print_sum(encoding.encode_key(emb_str,self.nbits),checkstr,embedded)
 			#
 			# END DEBUG CHECKS
 			#
 			# Check integrity
-			if n.digest_to_nums(emb_str) != checkstr:
+			if encoding.digest_to_nums(emb_str, self.nbits) != checkstr:
 				self.l.error("CheckStr does not match embedded data")
 				self.l.debug(self.print_it("Raw data (corrupted)",emb_str))
 				return -1
