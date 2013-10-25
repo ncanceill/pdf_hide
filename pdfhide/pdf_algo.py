@@ -438,7 +438,7 @@ class PDF_stego:
 		return tjs
 
 	# Extracts data from PDF file using derived_key, outputs extracted data to
-	def extract(self,derived_key,binary=True):
+	def extract(self,derived_key):
 		self.print_conf()
 		self.tj_count = 0
 		self.tj_count_valid = 0
@@ -520,11 +520,7 @@ class PDF_stego:
 			while k < embedded.__len__():
 				bin = encoding.num_to_binstr(embedded[k],self.nbits)
 				if k == embedded.__len__() - 1:
-					if binary: # Hack for bytes instead of string
-					#TODO: do that better
-						missing = self.nbits
-					else:
-						missing = -(bin_str.__len__() % 8) % 8
+					missing = self.nbits
 					self.l.debug(self.print_it("Missing bits",missing))
 					if missing > self.nbits:
 						self.l.error("Trailing data is too long and cannot be decoded")
@@ -535,13 +531,8 @@ class PDF_stego:
 					bin_str += bin
 				k += 1
 			self.l.debug(self.print_it("Raw binary data",bin_str))
-			if binary: # Hack for bytes instead of string
-			#TODO: do that better and include little endian
-				emb_chars = encoding.decode(bin_str)
-				emb_str = b""
-			else:
-				emb_chars = [encoding.binstr_to_ch(num,self.nbits) for num in encoding.split_len(bin_str,8)]
-				emb_str = ""
+			emb_chars = encoding.decode(bin_str)
+			emb_str = b""
 			for ch in emb_chars:
 				emb_str += ch
 			#
@@ -559,10 +550,7 @@ class PDF_stego:
 				return -1
 			else:
 				self.l.info("Done extracting.")
-				if binary: # Hack for bytes instead of string
-					output_file = open(self.output,"wb")
-				else:
-					output_file = open(self.output,"w")
+				output_file = open(self.output,"wb")
 				output_file.write(emb_str)
 				output_file.close()
 				self.l.info("Output file: \"" + self.output + "\"")
