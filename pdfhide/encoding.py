@@ -61,8 +61,8 @@ def digest_to_nums(d,nbits):
 	return [hexstr_to_num(dig,nbits) for dig in split_len(digest(d),2)]
 
 # Encodes a message to a list of numerals according to the algo
-def msg_to_nums(msg,nbits,littleendian=False):
-	return [binstr_to_num(str,nbits) for str in pad_str(msg,nbits,littleendian)]
+def msg_to_nums(msg,nbits):
+	return [binstr_to_num(str,nbits) for str in pad_str(msg,nbits)]
 
 # Encodes a message and a stego key according to the algo
 #
@@ -87,10 +87,8 @@ def encode_key(key,nbits):
 # Decodes extracted data into bytes
 #
 # Returns a list of bytes
-def decode(bin_str,littleendian=False):
-	if littleendian:
-		return [binstr_to_byte_bige(num) for num in split_len(tail_littlee(bin_str),8)]
-	return [binstr_to_byte_littlee(num) for num in split_len(tail_bige(bin_str),8)]
+def decode(bin_str):
+	return [binstr_to_byte_bige(num) for num in split_len(tail_bige(bin_str),8)]
 
 #
 # Math
@@ -161,13 +159,8 @@ def pad_binstr_bige(b,nbits):
 		b = "0" + b
 	return b
 
-def pad_binstr_littlee(b,nbits):
-	while b.__len__() % nbits > 0:
-		b = b + "0"
-	return b
-
-def pad_str(msg,nbits,littleendian=False):
-	return [pad_binstr(bin,nbits) for bin in split_len(str_to_binstr(msg,nbits,littleendian),nbits)]
+def pad_str(msg,nbits):
+	return [pad_binstr(bin,nbits) for bin in split_len(str_to_binstr(msg,nbits),nbits)]
 
 def num_to_binstr(num,nbits):
 	return pad_binstr(bin(num)[2:],nbits)
@@ -180,35 +173,17 @@ def tail_bige(b):
 		return pad_binstr_bige(b,8)
 	return b[b.__len__()%8:]
 
-def tail_littlee(b):
-	if b[b.__len__()-(b.__len__()%8):].__len__() > 0 and int(b[b.__len__()-(b.__len__()%8):],2) > 0:
-		return pad_binstr_littlee(b,8)
-	return b[:b.__len__()-(b.__len__()%8)-1]
-
 #
 # Conversions
 
 # --- Bytes to binary strings
 
-# Encodes bytes into a binary string
-def str_to_binstr(str,nbits,littleendian=False):
-	if littleendian:
-		return bstr_to_binstr_littlee(str,nbits)
-	return bstr_to_binstr_bige(str,nbits)
-
 # Encodes bytes into a big-endian binary string
 # (e.g. b"\xac" returns "0010101100" if n is 5)
-def bstr_to_binstr_bige(bstr,nbits):
+def str_to_binstr(bstr,nbits):
 	if bstr.__len__() < 1:
 		return ""
 	return pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:],nbits)
-
-# Encodes bytes into a little-endian binary string
-# (e.g. b"\xac" returns "0011010100" if n is 5)
-def bstr_to_binstr_littlee(bstr,nbits):
-	if bstr.__len__() < 1:
-		return ""
-	return pad_binstr_littlee(bin(int.from_bytes(bstr,"little"))[2:],nbits)
 
 # --- Binary strings to bytes
 
@@ -216,11 +191,6 @@ def bstr_to_binstr_littlee(bstr,nbits):
 # into a big endian byte
 def binstr_to_byte_bige(str):
 	return int(str,2).to_bytes(1,"big")
-
-# Encodes an 8-bit number (passed-in as a binary string, e.g. "01000110")
-# into a little endian byte
-def binstr_to_byte_littlee(str):
-	return int(str,2).to_bytes(1,"little")
 
 # --- Binary strings to strings
 
