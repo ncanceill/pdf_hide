@@ -36,7 +36,7 @@ __version__ = "0.0b"
 #
 
 #
-# This module is a wrapper for QPDF and some system utilities.
+# This module is a wrapper for QPDF and some system utilities for pdf_hide.
 #
 # It uses Python's OS system calls to expose the QPDF API.
 #

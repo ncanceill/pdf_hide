@@ -35,9 +35,19 @@ __version__ = "0.0b"
 #
 
 #
+# This module implements chaotic maps for the pdf_hide algo.
 #
+# It implements logistic recursive map of the following type:
+# ##### x -> mu * x * (1 - x) #####
+# This map presents a chaotic behavior for most values of 'mu'
+# strictly comprised between 3.57 and 4.
 #
-# CLASSES
+# A chaotic map is initiated with the 'mu' parameter in ]3.57,4[
+# and with an initial value of 'x' generated from the 'flagstr'
+# parameter according to the pdf_hide algo.
+#
+# After that, the 'next()' method can be used to simultaneously
+# generate and retrieve the next value from the chaotic map.
 #
 
 class Chaotic:
