@@ -145,28 +145,14 @@ class PDF_stego:
 	#
 	# Printing tools for debug
 
-	def print_it(self,name,value):
-		ret = ""
-		if value != None and hasattr(value, '__len__'):
-			ret += name + ' (' + str(value.__len__()) + ')'
-		else:
-			ret += name
-		if value == None:
-			ret += ""
-		else:
-			ret += ('\t' + str(value))
-		return ret
-
 	def print_conf(self):
-		self.l.debug("\n===== CONFIG =====")
-		self.l.debug("== input: \"" + self.output + ".qdf\"")
-		self.l.debug("== redundancy: " + str(self.redundancy))
-		self.l.debug("== bit depth: " + str(self.nbits))
-		if self.improve:
-			i = "YES"
-		else:
-			i = "NO"
-		self.l.debug("== using improvements: " + i)
+		self.l.debug("===== CONFIG =====")
+		self.l.debugs({
+		  "input":"\"" + self.output + ".qdf\"",
+		  "redundancy":self.redundancy,
+		  "bit depth":self.nbits,
+		  "improvements":self.improve
+		  })
 
 	#
 	#
@@ -303,8 +289,8 @@ class PDF_stego:
 		cover_file = open(self.input + ".qdf","rb")
 		new_file = b""
 		# Get the numerals to embed from the key and the message
-		self.l.debug(self.print_it("Data to embed",data))
-		self.l.debug(self.print_it("Data to embed (binary)",encoding.str_to_binstr(data,self.nbits)))
+		self.l.debug("Data to embed",data)
+		self.l.debug("Data to embed (binary)",encoding.str_to_binstr(data,self.nbits))
 		nums = encoding.encode_msg(data,passkey,self.nbits)
 		ind = nums[0] + nums[1] + nums[2]
 		self.tjs = []
@@ -321,10 +307,10 @@ class PDF_stego:
 			ind = list(map(lambda x: (x + jitter) % (2**self.nbits),ind))
 		else:
 			jitter = 0
-		self.l.debug(self.print_it("FlagStr1 (CheckStr)",nums[0]))
-		self.l.debug(self.print_it("FlagStr2",nums[2]))
-		self.l.debug(self.print_it("Data",encoding.msg_to_nums(data,self.nbits)))
-		self.l.debug(self.print_it("Jitter",jitter))
+		self.l.debug("FlagStr1 (CheckStr)",nums[0])
+		self.l.debug("FlagStr2",nums[2])
+		self.l.debug("Data",encoding.msg_to_nums(data,self.nbits))
+		self.l.debug("Jitter",jitter)
 		# Initiate chaotic maps
 		if self.improve:
 			ch_one = random.Random(encoding.digest(data))
@@ -335,7 +321,7 @@ class PDF_stego:
 		# Parse file
 		if 0:#self.improve: #TODO: fix
 			start = int(self.tjs.__len__() * ch_two.random())
-			self.l.debug(self.print_it("Random start position",start))
+			self.l.debug("Random start position",start)
 		else:
 			start = 0
 		i = 0
@@ -447,7 +433,7 @@ class PDF_stego:
 		embedding_file = open(self.input+".qdf",encoding="iso-8859-1")
 		# Get the numerals from the key
 		nums = encoding.encode_key(derived_key,self.nbits)
-		self.l.debug(self.print_it("FlagStr",nums))
+		self.l.debug("FlagStr",nums)
 		# Initiate chaotic map
 		if self.improve:
 			ch_two = random.Random(derived_key)
@@ -462,7 +448,7 @@ class PDF_stego:
 				if m != None:
 					tjs += self.get_tjs(m.group(1))
 			start = int(tjs.__len__() * ch_two.random())
-			self.l.debug(self.print_it("Random start position",start))
+			self.l.debug("Random start position",start)
 			embedding_file.seek(0,0)
 		else:
 			start = 0
@@ -482,7 +468,7 @@ class PDF_stego:
 				jitter = tjs[0] + 1
 			else:
 				jitter = tjs[0] - 1
-			self.l.debug(self.print_it("Jitter found",jitter))
+			self.l.debug("Jitter found",jitter)
 		else:
 			jitter = 0
 		# Jitter data
@@ -500,7 +486,7 @@ class PDF_stego:
 			# Look for end position
 			if nums == tjs_[k:k+20]:
 				end = k + 20 - 1
-				self.l.debug(self.print_it('End position found',end))
+				self.l.debug("End position found",end)
 				#length = end - start + 1
 				checkstr = tjs_[start:start + 20]
 				embedded = tjs_[start + 20:k]
@@ -512,23 +498,23 @@ class PDF_stego:
 			return -1
 		else:
 			# Decode embedded data
-			self.l.debug(self.print_it("Raw data",embedded))
+			self.l.debug("Raw data",embedded)
 			k = 0
 			bin_str = ""
 			while k < embedded.__len__():
 				bin = encoding.num_to_binstr(embedded[k],self.nbits)
 				if k == embedded.__len__() - 1:
 					missing = self.nbits
-					self.l.debug(self.print_it("Missing bits",missing))
+					self.l.debug("Missing bits",missing)
 					if missing > self.nbits:
 						self.l.error("Trailing data is too long and cannot be decoded")
-						self.l.debug(self.print_it("Raw data (corrupted)",embedded))
+						self.l.debug("Raw data (corrupted)",embedded)
 						return -1
 					bin_str += bin[bin.__len__() - missing:]
 				else:
 					bin_str += bin
 				k += 1
-			self.l.debug(self.print_it("Raw binary data",bin_str))
+			self.l.debug("Raw binary data",bin_str)
 			emb_chars = encoding.decode(bin_str)
 			emb_str = b""
 			for ch in emb_chars:
@@ -544,7 +530,7 @@ class PDF_stego:
 			# Check integrity
 			if encoding.digest_to_nums(emb_str, self.nbits) != checkstr:
 				self.l.error("CheckStr does not match embedded data")
-				self.l.debug(self.print_it("Raw data (corrupted)",emb_str))
+				self.l.debug("Raw data (corrupted)",emb_str)
 				return -1
 			else:
 				self.l.info("Done extracting.")
@@ -552,11 +538,11 @@ class PDF_stego:
 				output_file.write(emb_str)
 				output_file.close()
 				self.l.info("Output file: \"" + self.output + "\"")
-				self.l.debug(self.print_it("Extracted data","\"" + str(emb_str) + "\""))
-				self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
-				self.l.debug(self.print_it("Total nb of valid TJ ops",self.tj_count_valid))
-				self.l.debug(self.print_it("Total nb of valid TJ ops used",embedded.__len__() + 40))
-				self.l.debug(self.print_it("Total nb of valid TJ ops used for data",embedded.__len__()))
+				self.l.debug("Extracted data","\"" + str(emb_str) + "\"")
+				self.l.debug("Total nb of TJ ops",self.tj_count)
+				self.l.debug("Total nb of valid TJ ops",self.tj_count_valid)
+				self.l.debug("Total nb of valid TJ ops used",embedded.__len__() + 40)
+				self.l.debug("Total nb of valid TJ ops used for data",embedded.__len__())
 				return 0
 
 	#
@@ -606,13 +592,13 @@ class PDF_stego:
 				sbugs += ["@[" + str(i) + "] orig. " + str(self.tjss_[i]) + " | new " + str(tjss[i])]
 			i += 1
 		if sbugs.__len__() > 0:
-			self.l.debug(self.print_it("Sign bugs",sbugs))
-			self.l.debug(self.print_it("Embedded data","\"" + data + "\""))
-			self.l.debug(self.print_it("Total nb of TJ ops",self.tj_count))
-			self.l.debug(self.print_it("Total nb of TJ ops used",ind.__len__()))
-			self.l.debug(self.print_it("Total nb of TJ ops used for data",nums[1].__len__()))
+			self.l.debug("Sign bugs",sbugs)
+			self.l.debug("Embedded data","\"" + data + "\"")
+			self.l.debug("Total nb of TJ ops",self.tj_count)
+			self.l.debug("Total nb of TJ ops used",ind.__len__())
+			self.l.debug("Total nb of TJ ops used for data",nums[1].__len__())
 
 	def debug_extract_print_sum(self,checksum,checkstr,embedded):
-		self.l.debug(self.print_it('Data Checksum',checksum))
-		self.l.debug(self.print_it('CheckStr',checkstr))
-		self.l.debug(self.print_it('Data',embedded))
+		self.l.debug("Data Checksum",checksum)
+		self.l.debug("CheckStr",checkstr)
+		self.l.debug("Data",embedded)

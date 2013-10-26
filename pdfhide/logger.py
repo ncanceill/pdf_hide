@@ -56,11 +56,47 @@ Distributed under GNU General Public License v3
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it under certain conditions.
 Please see LICENSE.md or http://www.gnu.org/licenses/ for details."""
+MSG_BUG = """Maintained by Nicolas Canceill
+Please report bugs at https://github.com/ncanceill/pdf_hide
+or at nicolas.canceill@ens-cachan.org"""
 
 #
 #
+# BASIC MESSAGES
+#
+#
+
+# Print splash screen
+def print_splash():
+	print("====================")
+	print(MSG_VERSION)
+	print("====================")
+
+# Print disclaimer
+def print_discl():
+	print("====================")
+	print(MSG_LICENSE)
+	print("====================")
+
+# Print maintenance info
+def print_maint():
+	print("====================")
+	print(MSG_BUG)
+	print("====================")
+
+# Print a value
+def print_val(v):
+	if v == None:
+		return ""
+	m = "\n\t" + v.__class__.__qualname__
+	if hasattr(v,'__len__'):
+		m = m + "\t[" + str(v.__len__()) + "]"
+	return m + "\n\t" + str(v)
+
+#
 #
 # ROOT LOGGER
+#
 #
 
 class rootLogger:
@@ -78,29 +114,38 @@ class rootLogger:
 			logging.getLogger().setLevel(logging.DEBUG)
 			self.DEBUG=True
 
-	# Print splash screen
-	def print_splash(self):
-		print("====================")
-		print(MSG_VERSION)
-		print("====================")
+	def critical(self,msg,val=None):
+		logging.critical(msg + print_val(val))
+		print_maint()
 
-	# Print disclaimer
-	def print_discl(self):
-		print("====================")
-		print(MSG_LICENSE)
-		print("====================")
+	def error(self,msg,val=None):
+		logging.error(msg + print_val(val))
 
-	def critical(self,msg):
-		logging.critical(msg)
+	def warn(self,msg,val=None):
+		logging.warning(msg + print_val(val))
 
-	def error(self,msg):
-		logging.error(msg)
+	def info(self,msg,val=None):
+		logging.info(msg + print_val(val))
 
-	def warn(self,msg):
-		logging.warning(msg)
+	def debug(self,msg,val=None):
+		logging.debug(msg + print_val(val))
 
-	def info(self,msg):
-		logging.info(msg)
+	def criticals(self,dict):
+		for (m,v) in dict.items():
+			self.critical(m,v)
 
-	def debug(self,msg):
-		logging.debug(msg)
+	def errors(self,dict):
+		for (m,v) in dict.items():
+			self.error(m,v)
+
+	def warns(self,dict):
+		for (m,v) in dict.items():
+			self.warn(m,v)
+
+	def infos(self,dict):
+		for (m,v) in dict.items():
+			self.info(m,v)
+
+	def debugs(self,dict):
+		for (m,v) in dict.items():
+			self.debug(m,v)
