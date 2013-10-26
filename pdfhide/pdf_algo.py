@@ -198,7 +198,7 @@ class PDF_stego:
 		#return [False, jitter + 1]
 		self.tj_count += 1
 		if self.improve:
-			if ch_two < self.redundancy or num == None or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
+			if ch_two < self.redundancy or num == None or (self.customrange and not encoding.is_in_crange(val,self.nbits)):
 				# Custom range values work because of the hack normalrange/customrange
 				# TODO: update docs!!!
 				# Use TJ op for a random value
@@ -401,7 +401,7 @@ class PDF_stego:
 
 	def extract_op(self,val,ch_two):
 		self.tj_count += 1
-		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and (val > -256 or val < -447 or (val < -319 and val > -336))):
+		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and not encoding.is_in_crange(val,self.nbits)):
 			# Do not use TJ op
 			return 0
 		self.tj_count_valid += 1
@@ -584,7 +584,7 @@ class PDF_stego:
 		#	self.l.debug(self.print_it("TJ unsigned average before",n.avg(tjs)))
 
 	def debug_embed_print_sum(self):
-		embd_file = open(self.output+".fix",encoding="iso-8859-1")
+		embd_file = open(self.output+".raw.fix",encoding="iso-8859-1")
 		tjss = []
 		# Parse file
 		for line in embd_file:

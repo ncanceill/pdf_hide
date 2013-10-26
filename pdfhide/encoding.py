@@ -77,6 +77,8 @@ def encode_msg(msg,key,nbits):
 #
 # Returns the list of 20 numerals representing "FlagStr"
 def encode_key(key,nbits):
+	if isinstance(key,type(b'')):
+		return digest_to_nums(key,nbits)
 	return digest_to_nums(key.encode('utf-8'),nbits)
 
 #
@@ -108,6 +110,29 @@ def mean(nums,nums_):
 		n += (nums[i] - nums_[i])
 		i += 1
 	return float(n) / nums_.__len__()
+
+def lmgt(nbits,limit):
+	m = 0
+	n = 2**nbits
+	l = abs(limit)
+	while m * n < l:
+		m = m + 1
+	if limit < 0:
+		return -(m * n)
+	return m * n
+
+def gmlt(nbits,limit):
+	m = 0
+	n = 2**nbits
+	l = abs(limit)
+	while m * n < l:
+		m = m + 1
+	if limit < 0:
+		return -(m - 1) * n
+	return (m - 1) * n
+
+def is_in_crange(tj,nbits):
+	return ((tj <= lmgt(nbits,-250) and tj > gmlt(nbits,-333)) or (tj <= lmgt(nbits,-334) and tj > gmlt(nbits,-450)))
 
 #
 # Sequences

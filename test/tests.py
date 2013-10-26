@@ -272,20 +272,21 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		output = output_file.read()
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
-	# Disabled because of https://github.com/ncanceill/pdf_hide/issues/8
-	#	def test_algoi_full_embed(self):
-	#		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,improve=True,red=0.863,nbits=3,customrange=True)
-	#		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
-	#		self.assertTrue(result > 0)
-	#	def test_algoi_full_extract(self):
-	#		ps = pdf_algo.PDF_stego(s_long + ".pdf.out.fix.pdf",rl,improve=True,red=0.863,nbits=3,customrange=True)
-	#		result = ps.extract(self.defaultKey)
-	#		self.assertEqual(result, 0)
-	#	def test_algoi_full_resultchk(self):
-	#		output_file = open(s_long + ".pdf.out.fix.pdf.embd")
-	#		output = output_file.read()
-	#		output_file.close()
-	#		self.assertEqual(self.defaultMessage,output)
+	def test_algoi_full_embed(self):
+		n = min(self.nbits,6)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,red=self.redundancy,nbits=n,customrange=True)
+		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
+		self.assertTrue(result > 0)
+	def test_algoi_full_extract(self):
+		n = min(self.nbits,6)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True,red=self.redundancy,nbits=n,customrange=True)
+		result = ps.extract(self.defaultKey)
+		self.assertEqual(result, 0)
+	def test_algoi_full_resultchk(self):
+		output_file = open(s_msg,"rb")
+		output = output_file.read()
+		output_file.close()
+		self.assertEqual(self.defaultMessage,output)
 	@classmethod
 	def tearDownClass(cls):
 		print_end('algorithm improved (special)')
