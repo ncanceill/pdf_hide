@@ -380,9 +380,7 @@ class PDF_stego:
 			output_file = open(self.output+".raw","wb")
 			output_file.write(new_file)
 			output_file.close()
-			driver.fix(self.output+".raw",self.output+".fix")
-			driver.delete(self.output+".raw")
-			driver.compress(self.output+".fix",self.output)
+			driver.fcc(self.output+".raw",self.output)
 			#
 			# BEGIN DEBUG CHECKS
 			#
@@ -391,7 +389,7 @@ class PDF_stego:
 			#
 			# END DEBUG CHECKS
 			#
-			driver.delete(self.output+".fix")
+			driver.delete(self.output+".raw.fix")
 			self.l.info("Output file: \"" + self.output + "\"")
 			return nums[1].__len__()
 

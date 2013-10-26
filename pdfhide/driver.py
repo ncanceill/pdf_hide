@@ -36,9 +36,15 @@ __version__ = "0.0b"
 #
 
 #
+# This module is a wrapper for QPDF and some system utilities.
+#
+# It uses Python's OS system calls to expose the QPDF API.
+#
+
 #
 #
-# FUNCTIONS
+# PUBLIC API
+#
 #
 
 # Generates QDF file from PDF file, uncompressing streams if needed
@@ -56,3 +62,9 @@ def compress(input,output):
 # Removes file
 def delete(file):
 	os.system('rm '+file)
+
+# Fixes, compresses, and cleans
+def fcc(input,output):
+	fix(input,input+'.fix')
+	delete(input)
+	compress(input+'.fix',output)
