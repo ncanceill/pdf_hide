@@ -75,6 +75,7 @@ def main():
 		  )
 	# CLI - Embedding
 	parser_embed = subparsers.add_parser("embed",
+		  aliases=["m"],
 		  help="Embed message inside PDF file"
 		  )
 	parser_embed.add_argument("data",
@@ -89,6 +90,7 @@ def main():
 		  )
 	# CLI - Extracting
 	parser_extract = subparsers.add_parser("extract",
+		  aliases=["x"],
 		  help="Extract message from PDF file"
 		  )
 	# CLI - Options
@@ -96,21 +98,26 @@ def main():
 		  "use these options to tune the algorithm"
 		  )
 	group_options.add_argument("-n", "--nbits",
-		  dest="nbits",
 		  action="store",
+		  dest="nbits",
 		  type=int,
 		  default=4,
 		  help="use NBITS as the number of bits to use for numerals",
 		  metavar="NBITS"
 		  )
 	group_options.add_argument("-r", "--redundancy",
-		  dest="red",
 		  action="store",
+		  dest="red",
 		  type=float,
 		  default=0.1,
 		  help="use RED as the redundancy parameter (strictly between 0 and 1)",
 		  metavar="RED"
 		  )
+	#group_options.add_argument("--little-endian",
+	#	  action="store_true",
+	#	  dest="littleendian",
+	#	  help="treat binary data as little endian"
+	#	  )
 	# CLI - Improvements #TODO: clean that up
 	parser.add_argument("-i", "--improve",
 		  action="store_true",
@@ -122,7 +129,10 @@ def main():
 		  action="store_true",
 		  dest="customrange",
 		  default=False,
-		  help="use data in [-450,-250] without -333 and -334 (ignored with original algo, will force --no-random when embedding)"
+		  help="""use data in [-450,-250] without -333 and -334
+(ignored with original algo,
+will force --no-random when embedding,
+will force NBITS to maximum 6)"""
 		  )
 	# CLI - Verbosity
 	group_verb = parser.add_mutually_exclusive_group()
@@ -152,6 +162,8 @@ def main():
 	if args.action == "embed":
 		if args.key == None:
 			args.key = getpass.getpass("Please enter key: ")
+		if args.customrange:
+			args.nbits = min(nbits,6) # TODO: doc
 		ps = pdf_algo.PDF_stego(
 			  args.filename,
 			  rl,
@@ -170,6 +182,8 @@ def main():
 	elif args.action == "extract":
 		if args.key == None:
 			args.key = getpass.getpass("Please enter key: ")
+		if args.customrange:
+			args.nbits = min(nbits,6) # TODO: doc
 		ps = pdf_algo.PDF_stego(
 			  args.filename,
 			  rl,

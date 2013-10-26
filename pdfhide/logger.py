@@ -54,7 +54,8 @@ Hosted at https://github.com/ncanceill/pdf_hide"""
 MSG_LICENSE = """PDF_HIDE  Copyright (C) 2013  Nicolas Canceill
 Distributed under GNU General Public License v3
 This program comes with ABSOLUTELY NO WARRANTY.
-This is free software, and you are welcome to redistribute it under certain conditions.
+This is free software, and you are welcome to
+redistribute it under certain conditions.
 Please see LICENSE.md or http://www.gnu.org/licenses/ for details."""
 MSG_BUG = """Maintained by Nicolas Canceill
 Please report bugs at https://github.com/ncanceill/pdf_hide
