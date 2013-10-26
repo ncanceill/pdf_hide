@@ -171,17 +171,10 @@ class PDF_stego:
 	# If res[0] == True then num was embedded, move on to next numeral
 	# If res[0] == False then try to embed num again in the nex operator
 	# res[1] is the new operator value (regardless of res[0])
-	def embed_op(self,val,ch_one,ch_two,num,jitter):
+	def embed_op(self,val,ch_one,ch_two,num):
 		if (not self.improve and abs(val) > 2**self.nbits) or val == 0:
 			# Do not use TJ op
 			return [False,val]
-		#if self.improve and self.tj_count == 1:
-		# Embed jitter value
-		#if jitter < 0:
-		#	self.print_debug('Embedded jitter',jitter - 1)
-		#	return [False, jitter - 1]
-		#self.print_debug('Embedded jitter',jitter + 1)
-		#return [False, jitter + 1]
 		self.tj_count += 1
 		if self.improve:
 			if ch_two < self.redundancy or num == None or (self.customrange and not encoding.is_in_crange(val,self.nbits)):
@@ -226,7 +219,7 @@ class PDF_stego:
 	# Returns a list res[]
 	# res[0] is the modified line
 	# res[1] is the new value of the IND index
-	def embed_line(self,line,ch_one,ch_two,ind,i,start,ntjs,jitter,j):
+	def embed_line(self,line,ch_one,ch_two,ind,i,start,ntjs,j):
 		newline = line
 		i_ = i
 		j_ = j
@@ -250,21 +243,21 @@ class PDF_stego:
 							ch_two_next = ch_two.random()
 						if self.tj_count < start: #TODO: fix
 							if start + ind.__len__() + j_ - ntjs > self.tj_count:
-								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[ntjs - start + self.tj_count - j_],jitter)
+								op = self.embed_op(tj,ch_one_next,ch_two_next,ind[ntjs - start + self.tj_count - j_])
 							else:
-								op = self.embed_op(tj,ch_one_next,ch_two_next,None,jitter)
+								op = self.embed_op(tj,ch_one_next,ch_two_next,None)
 						elif self.tj_count - start < ind.__len__() + j_:
-							op = self.embed_op(tj,ch_one_next,ch_two_next,ind[self.tj_count - start - j_],jitter)
+							op = self.embed_op(tj,ch_one_next,ch_two_next,ind[self.tj_count - start - j_])
 						else:
-							op = self.embed_op(tj,ch_one_next,ch_two_next,None,jitter)
+							op = self.embed_op(tj,ch_one_next,ch_two_next,None)
 					else:
-						op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_],jitter)
+						op = self.embed_op(tj,ch_one.next(),ch_two.next(),ind[i_])
 				else:
 					# No more numerals to embed
 					if self.improve:
-						op = self.embed_op(tj,ch_one.random(),ch_two.random(),None,jitter)
+						op = self.embed_op(tj,ch_one.random(),ch_two.random(),None)
 					else:
-						op = self.embed_op(tj,ch_one.next(),ch_two.next(),None,jitter)
+						op = self.embed_op(tj,ch_one.next(),ch_two.next(),None)
 				if op[0]:
 					# One numeral was embedded, update IND index
 					i_ += 1
@@ -294,23 +287,9 @@ class PDF_stego:
 		nums = encoding.encode_msg(data,passkey,self.nbits)
 		ind = nums[0] + nums[1] + nums[2]
 		self.tjs = []
-		if self.improve:
-			# Parse file
-			for line__ in cover_file:
-				line = line__.decode("latin-1")
-				# Parse line for TJ blocks
-				m = re.search(r'\[(.*)\][ ]?TJ',line)
-				if m != None:
-					self.tjs += self.get_tjs(m.group(1))
-			# Jitter data
-			jitter = 0#int(n.mean(tjs,ind)) #TODO: improve jitter calculation
-			ind = list(map(lambda x: (x + jitter) % (2**self.nbits),ind))
-		else:
-			jitter = 0
 		self.l.debug("FlagStr1 (CheckStr)",nums[0])
 		self.l.debug("FlagStr2",nums[2])
 		self.l.debug("Data",encoding.msg_to_nums(data,self.nbits))
-		self.l.debug("Jitter",jitter)
 		# Initiate chaotic maps
 		if self.improve:
 			ch_one = random.Random(encoding.digest(data))
@@ -339,7 +318,7 @@ class PDF_stego:
 					k += 1
 				else:
 					# Try to embed data in TJ block
-					block = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,self.tjs.__len__(),jitter,j)
+					block = self.embed_line(m.group(1),ch_one,ch_two,ind,i,start,self.tjs.__len__(),j)
 					# Insert new block
 					line_ = line_[:k + m.start(1)] + block[0] + line_[k + m.end(1):]
 					i = block[1]
@@ -462,22 +441,10 @@ class PDF_stego:
 				tjs += self.extract_line(line,ch_two)
 		embedding_file.close()
 		driver.delete(self.input+".qdf")
-		if 0:#self.improve:
-			# Extract jitter
-			if tjs[0] < 0:
-				jitter = tjs[0] + 1
-			else:
-				jitter = tjs[0] - 1
-			self.l.debug("Jitter found",jitter)
-		else:
-			jitter = 0
-		# Jitter data
-		#for t in tjs:
-		#	self.l.debug("Extracted num ["+str((t-1)%(2**self.nbits))+"] from ["+str(t)+"]")
 		normalrange = 1 # Hack for custom range (do not shift by 1), TODO: do that better and include in docs
 		if self.customrange:
 			normalrange = 0
-		tjs = list(map(lambda x: (x - jitter - normalrange) % (2**self.nbits), tjs))
+		tjs = list(map(lambda x: (x - normalrange) % (2**self.nbits), tjs))
 		tjs_ = tjs + tjs
 		# Extract data
 		k = start + 20
