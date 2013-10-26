@@ -112,7 +112,8 @@ def mean(nums,nums_):
 #
 # Sequences
 
-# Splits a sequence into a list of sequences of specified length (the last one may be shorter)
+# Splits a sequence into a list of sequences of specified length
+# (the last one may be shorter)
 def split_len(seq,length):
 	return [seq[i:i+length] for i in range(0,len(seq),length)]
 
