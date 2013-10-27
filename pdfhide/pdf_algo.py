@@ -100,6 +100,15 @@ class PDF_stego:
 		self.nbits = nbits
 		if self.improve:
 			self.customrange = customrange
+		if self.redundancy > 0.7:
+			self.l.warn("You are excluding more than 70% of the available space")
+		if not self.improve:
+			self.l.warn("You should use the \"-i\" flag for a better result")
+		if self.customrange:
+			self.l.warn("The custom range is specifically designed for LaTeX PDF files")
+			if self.nbits > 6:
+				self.l.warn("Custom range is enabled, so I am forcing NBITS to 6 instead of " + str(self.nbits))
+				self.nbits = 6
 
 	#
 	#
@@ -180,7 +189,7 @@ class PDF_stego:
 				# or ruled out by redundancy
 				# or all data is already embedded
 				# -> Check no-random flag
-				if self.norandom or self.customrange:
+				if self.norandom:
 					# No-random is set
 					# -> Do not use TJ op
 					return [False,val]
@@ -324,6 +333,10 @@ class PDF_stego:
 	def embed(self,data,passkey,norandom=False):
 		# Initialize state
 		self.norandom = norandom
+		if self.customrange:
+			if norandom:
+				self.l.warn("Custom range is enabled, so I am forcing the no-random flag")
+			self.norandom = True
 		self.tj_count = 0
 		self.tj_count_valid = 0
 		self.tjs = []

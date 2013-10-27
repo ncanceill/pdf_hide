@@ -273,13 +273,11 @@ class SpecialIAlgoTestCase(unittest.TestCase):
 		output_file.close()
 		self.assertEqual(self.defaultMessage,output)
 	def test_algoi_full_embed(self):
-		n = min(self.nbits,6)
-		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,red=self.redundancy,nbits=n,customrange=True)
+		ps = pdf_algo.PDF_stego(s_long + ".pdf",rl,output=s_embed,improve=True,red=self.redundancy,nbits=self.nbits,customrange=True)
 		result = ps.embed(self.defaultMessage,self.defaultKey,norandom=True)
 		self.assertTrue(result > 0)
 	def test_algoi_full_extract(self):
-		n = min(self.nbits,6)
-		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True,red=self.redundancy,nbits=n,customrange=True)
+		ps = pdf_algo.PDF_stego(s_embed,rl,output=s_msg,improve=True,red=self.redundancy,nbits=self.nbits,customrange=True)
 		result = ps.extract(self.defaultKey)
 		self.assertEqual(result, 0)
 	def test_algoi_full_resultchk(self):
