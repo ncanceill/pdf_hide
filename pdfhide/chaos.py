@@ -25,12 +25,12 @@
 
 #
 # chaos.py
-__version__ = "0.0b"
+__version__ = "0.0rc0"
 #
-# This is a straightforward implementation of chaotic maps for pdf_hide v0.0b
+# This is a straightforward implementation of chaotic maps for pdf_hide v0.0rc0
 #
 # Written by Nicolas Canceill
-# Last updated on Oct 12, 2013
+# Last updated on Oct 27, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 

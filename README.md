@@ -1,10 +1,10 @@
-# pdf_hide
+# PDF HIDE
 
-A Python 3 steganographic tool for hiding data in [PDF](https://www.adobe.com/devnet/acrobat/pdfs/PDF32000_2008.pdf) files
+This is a steganographic tool in Python for hiding data in [PDF](https://www.adobe.com/devnet/acrobat/pdfs/PDF32000_2008.pdf) files
 
 * [What can it do?](#basic-usage)
-* [How to get it](#getting-started)
-* [How to improve it](#project-status)
+* [How can I get it?](#getting-started)
+* [How can I improve it?](#project-status)
 * [Licensing](#license-information)
 
 This tool is an ongoing effort to bring a novel open-source method of steganography to the public. It is able to embed arbitrary data in a covert way inside any PDF file containing enough text. As a result, no one but the intented recipient suspects the existence of embedded data. The same tool can then be used to extract the concealed data.
@@ -18,24 +18,24 @@ pdf_hide [-o <embedded.pdf>] embed <data_file> <innocent.pdf>
 ````
 
 ````bash
-pdf_hide extract <embedded.pdf>
+pdf_hide [-o <extracted_file>] extract <embedded.pdf>
 ````
 
 ## Getting started
 
-Please read the [guide](../../wiki/Quickstart).
+Please read the [guide](https://github.com/ncanceill/pdf_hide/wiki/Quickstart).
 
 ### Requirements
 
-This tool is a Python 3 program: it requires a basic [Python](http://www.python.org) 3 installation (currently tested on 3.3.2, should be retro-compatible down to 3.2). Python 3 distributes under [Python License](http://docs.python.org/3/license.html) from the Python Software Foundation.
+This tool is a Python 3 program: it requires a basic [Python](http://www.python.org) 3 installation.
 
-It requires [QPDF](http://qpdf.sourceforge.net) in order to modify compressed PDF files. QPDF distributes under [Artistic license v2](http://opensource.org/licenses/artistic-license-2.0.php) from the Perl Foundation.
+It requires [QPDF](http://qpdf.sourceforge.net) in order to modify compressed PDF files.
 
-Additionally, it requires [GNU Make](http://www.gnu.org/software/make/) and [`pdflatex`](http://www.ctan.org) to build samples for the tests. The TeX framework, including `pdflatex`, distributes under [GPLv2](http://www.gnu.org/licenses/gpl-2.0.html), and Make distributes under [GPLv3](http://www.gnu.org/licenses/gpl-3.0.html), both from the GNU Software Foundation.
+Additionally, it requires [GNU Make](http://www.gnu.org/software/make/) and [`pdflatex`](http://www.ctan.org) to build samples for the tests.
 
 ### Setup
 
-You can find the latest version packaged on the [releases page](../../releases). The current version is 0.0 beta: [tgz](../../archive/v0.0b.tar.gz) — [zip](../../archive/v0.0b.zip).
+You can find the latest version packaged on the [releases page](https://github.com/ncanceill/pdf_hide/releases). The current version is 0.0 RC0: [tgz](https://github.com/ncanceill/pdf_hide/archive/v0.0rc0.tar.gz) — [zip](https://github.com/ncanceill/pdf_hide/archive/v0.0rc0.zip).
 
 Alternatively, you can clone the git repository at: `github.com/ncanceill/pdf_hide.git`
 
@@ -45,49 +45,52 @@ You can install the package (as root) on your system's Python path with: `make i
 
 ## Project status
 
-Current version is [0.0 beta](../../releases/tag/v0.0b).
+Current version is [0.0 RC0](https://github.com/ncanceill/pdf_hide/releases/tag/v0.0rc0).
 
-Please check the [project status](../../wiki/About#status) for more details.
+Please check the [project status](https://github.com/ncanceill/pdf_hide/wiki/Status) for more details.
 
 ### Stability
 
-The current version is UNSTABLE and should not be run in production.
+The current version is STABLE, but it is a pre-release. It should only be run in production _with extreme care_.
 
-The `master` branch is UNSTABLE and should not be run in production.
+The `master` branch is STABLE and may be run in production _with extreme care_.
 
 ### Changelog
 
+#### version 0.0rc0
+
+[Changelog discussion](https://github.com/ncanceill/pdf_hide/issues/10)
+
+* Fixed bugs about custom range
+* Fixed bugs about custom range and nbits
+* Fixed bugs in tests automation
+* Fixed bugs with terminal emulation
+* Added multi-encoding support for datafile
+* Packaged portable code
+* Refactored code
+
 #### version 0.0b
 
-[Changelog discussion](../../issues/9)
-
-* Refactored code (logging, input, comments, debug)
-* Migrated to Python 3
-* Migrated to argparse
-
-#### version 0.0a
-
-* Licensing
-* Refactored code
-* Improved Makefile support
-* Unit tests
+[Changelog discussion](https://github.com/ncanceill/pdf_hide/issues/9)
 
 ### Contributions
 
 General rule: any contributions are welcome.
 
-Do not hesitate to [drop an issue](../../issues/new) if you found a bug, if you either want to see a new feature or wish to suggest an improvement, or even if you simply have a question.
+Do not hesitate to [drop an issue](https://github.com/ncanceill/pdf_hide/issues/new) if you found a bug, if you either want to see a new feature or wish to suggest an improvement, or even if you simply have a question.
 
-Please check the [contributions status](../../wiki/Contribute#status) if you want to get involved.
+Please check the [contributions status](https://github.com/ncanceill/pdf_hide/wiki/Contribute#status) if you want to get involved.
 
 ## License information
 
-This project distributes under [GNU General Public License v3](LICENSE.md) from the Free Software Foundation.
+This project, including this README, distributes under [GNU General Public License v3](LICENSE.md) from the Free Software Foundation.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program.  If not, see [http://www.gnu.org/licenses/].
+
+***
 
 Copyright (C) 2013 Nicolas Canceill

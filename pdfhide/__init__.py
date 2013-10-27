@@ -25,12 +25,12 @@
 
 #
 # __init__.py
-__version__ = "0.0b"
+__version__ = "0.0rc0"
 #
 # This is a Python3 init script for pdf_hide module pdfhide v0.0b
 #
 # Written by Nicolas Canceill
-# Last updated on Oct 12, 2013
+# Last updated on Oct 27, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 

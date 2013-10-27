@@ -32,12 +32,12 @@ from pdfhide import pdf_algo
 
 #
 # chaos.py
-__version__ = "0.0b"
+__version__ = "0.0rc0"
 #
-# This is a test suite for pdf_hide v0.0b
+# This is a test suite for pdf_hide v0.0rc0
 #
 # Written by Nicolas Canceill
-# Last updated on Oct 18, 2013
+# Last updated on Oct 27, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 
