@@ -54,7 +54,9 @@ __version__ = "0.0b"
 
 # Returns the 20-byte SHA1 digest of a string as an hexadecimal string
 def digest(str):
-	return hashlib.sha1(str).hexdigest()
+	if isinstance(str,type(b'')):
+		return hashlib.sha1(str).hexdigest()
+	return hashlib.sha1(str.encode('utf-8')).hexdigest()
 
 # Encodes a 20-byte SHA1 digest to a list of 20 numerals array according to the algo
 def digest_to_nums(d,nbits):
@@ -77,9 +79,7 @@ def encode_msg(msg,key,nbits):
 #
 # Returns the list of 20 numerals representing "FlagStr"
 def encode_key(key,nbits):
-	if isinstance(key,type(b'')):
-		return digest_to_nums(key,nbits)
-	return digest_to_nums(key.encode('utf-8'),nbits)
+	return digest_to_nums(key,nbits)
 
 #
 # Decoding
@@ -183,7 +183,9 @@ def tail_bige(b):
 def str_to_binstr(bstr,nbits):
 	if bstr.__len__() < 1:
 		return ""
-	return pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:],nbits)
+	if isinstance(bstr,type(b'')):
+		return pad_binstr_bige(bin(int.from_bytes(bstr,"big"))[2:],nbits)
+	return pad_binstr_bige(bin(int.from_bytes(bstr.encode('utf-8'),"big"))[2:],nbits)
 
 # --- Binary strings to bytes
 
