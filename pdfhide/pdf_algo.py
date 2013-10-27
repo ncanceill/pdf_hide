@@ -104,7 +104,9 @@ class PDF_stego:
 			self.l.warn("You are excluding more than 70% of the available space")
 		if not self.improve:
 			self.l.warn("You should use the \"-i\" flag for a better result")
-		if self.customrange:
+			if self.customrange:
+				self.l.warn("Improvements are disabled, so I am ignoring the custom-range flag")
+		elif self.customrange:
 			self.l.warn("The custom range is specifically designed for LaTeX PDF files")
 			if self.nbits > 6:
 				self.l.warn("Custom range is enabled, so I am forcing NBITS to 6 instead of " + str(self.nbits))
