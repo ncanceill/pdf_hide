@@ -143,28 +143,6 @@ class PDF_stego:
 		return tjs
 
 	#
-	# Printing tools for debug
-
-	def print_conf(self):
-		self.l.debug("===== CONFIG =====")
-		self.l.debugs({
-			  "input":"\"" + self.output + ".qdf\"",
-			  "redundancy":self.redundancy,
-			  "bit depth":self.nbits,
-			  "improvements":self.improve
-			  })
-
-	def print_conf_embed(self,data,nums):
-		self.print_conf()
-		self.l.debugs({
-			  "Data to embed":data,
-			  "Data to embed (binary)":encoding.str_to_binstr(data,self.nbits),
-			  "FlagStr1 (CheckStr)":nums[0],
-			  "FlagStr2":nums[2],
-			  "Data":encoding.msg_to_nums(data,self.nbits)
-			  })
-
-	#
 	#
 	#
 	# EMBEDDING
@@ -362,16 +340,19 @@ class PDF_stego:
 		else:
 			ch_one = chaos.Chaotic(self.mu_one,nums[2])
 			ch_two = chaos.Chaotic(self.mu_two,nums[2])
+		# Open input file
+		#
+		# NB: Only works for valid PDF files
+		self.l.info("Input file: \"" + self.input + "\"")
+		driver.uncompress(self.input,self.input+".qdf")
+		cover_file = open(self.input + ".qdf","rb")
+		cover_file.seek(0,0)
 		# Determine start position
 		if 0:#self.improve: #TODO: fix
 			start = int(self.tjs.__len__() * ch_two.random())
 			self.l.debug("Random start position",start)
 		else:
 			start = 0
-		# Open input file
-		driver.uncompress(self.input,self.input+".qdf")
-		cover_file = open(self.input + ".qdf","rb")
-		cover_file.seek(0,0)
 		# Parse file
 		self.l.info("Embedding data, please wait...")
 		self.print_conf_embed(data,nums)
@@ -386,6 +367,8 @@ class PDF_stego:
 				if m == None:
 					# No TJ blocks
 					# -> Look further
+					#
+					# TODO: check that
 					k += 1
 				else:
 					# A TJ block is found
@@ -410,20 +393,19 @@ class PDF_stego:
 			# -> Fail
 			self.l.error("Not enough space available (only " + str(self.tj_count_valid) + " available, " + str(ind.__len__()) + " needed)")
 			return -ind.__len__()
-		else:
-			# All data was embedded
-			self.l.info("Done embedding.")
-			# -> Produce output file
-			output_file = open(self.output+".raw","wb")
-			output_file.write(new_file)
-			output_file.close()
-			# Fix Compress Clean
-			driver.fcc(self.output+".raw",self.output)
-			self.debug_embed_print_sum()
-			driver.delete(self.output+".raw.fix")
-			# All finished
-			self.l.info("Output file: \"" + self.output + "\"")
-			return nums[1].__len__()
+		# All data was embedded
+		self.l.info("Done embedding.")
+		# -> Produce output file
+		output_file = open(self.output+".raw","wb")
+		output_file.write(new_file)
+		output_file.close()
+		# Fix Compress Clean
+		driver.fcc(self.output+".raw",self.output)
+		self.debug_embed_print_sum()
+		driver.delete(self.output+".raw.fix")
+		# All finished
+		self.l.info("Output file: \"" + self.output + "\"")
+		return nums[1].__len__()
 
 	#
 	#
@@ -431,159 +413,261 @@ class PDF_stego:
 	# EXTRACTING
 	#
 
+	# Extracts data from a TJ operator
+	#
+	# val: the value of the TJ operator
+	# ch_two: the next number from chaotic map 2
+	#
+	# Returns an integer
+	# If it is 0, the TJ op is not valid
+	# Otherwise, the abolute value of the TJ op is returned
 	def extract_op(self,val,ch_two):
+		# Update state
 		self.tj_count += 1
+		# Check value against settings
 		if (not self.improve and abs(val) > 2**self.nbits) or val == 0 or ch_two < self.redundancy or (self.customrange and not encoding.is_in_crange(val,self.nbits)):
-			# Do not use TJ op
+			# Value is either out of range
+			# or ruled out by redundancy
+			# or invalid
+			# -> Do not use TJ op
 			return 0
+		# Value is in range
+		# -> Update state
 		self.tj_count_valid += 1
 		if 0:#self.improve and self.tj_count == 1:
 			return val
 		# Extract data from TJ op
 		return abs(val)
 
+	# Extracts data from all operators in a TJ string
+	#
+	# line: the TJ string to parse
+	# ch_two: chaotic map 2
+	#
+	# Returns a list tjs[]
+	# tjs[n] is the value of the n-th valid TJ op
 	def extract_line(self,line,ch_two):
-		k = 0
+		# Initialize list to return
 		tjs = []
+		# Go through the line
+		k = 0
 		while k < line.__len__():
-			# Parse TJ string from current position
+			# Look for a TJ op, starting at current position
 			m = re.search(r'[>)](\-?[0-9]+)[<(]',line[k:])
 			if m == None:
 				# No more TJ ops
+				# -> Break the loop
 				k = line.__len__()
 			else:
-				# Try to extract numeral
+				# A TJ op is found
+				# -> Check improvements flag
 				if self.improve:
+					# Using Python's randomness
+					# -> Eliminate zeros
+					#
+					# TODO: check that
 					ch_two_next = 0
 					while ch_two_next == 0:
 						ch_two_next = ch_two.random()
 				else:
+					# Improvements are disabled
 					ch_two_next = ch_two.next()
+				# Finished checking chaotic map
+				# -> Try to extract numeral
 				tj = self.extract_op(int(m.group(1)),ch_two_next)
+				# -> Check result
 				if tj != 0:
-					# Get value
+					# A valid value was found
+					# -> Prepare to return value
 					tjs += [tj]
 				# Update current position
+				# -> Jump after the current TJ op
 				k += m.end(1)
+				# -> Keep parsing the line
 		return tjs
 
 	# Extracts data from PDF file using derived_key, outputs extracted data to
 	def extract(self,derived_key):
-		self.print_conf()
+		# Initialize state
 		self.tj_count = 0
 		self.tj_count_valid = 0
-		self.l.info("Input file: \"" + self.input + "\"")
-		self.l.info("Extracting data, please wait...")
-		# Only works for valid PDF files
-		driver.uncompress(self.input,self.input+".qdf")
-		embedding_file = open(self.input+".qdf",encoding="iso-8859-1")
+		tjs = []
 		# Get the numerals from the key
 		nums = encoding.encode_key(derived_key,self.nbits)
-		self.l.debug("FlagStr",nums)
 		# Initiate chaotic map
 		if self.improve:
 			ch_two = random.Random(derived_key)
 		else:
 			ch_two = chaos.Chaotic(self.mu_two,nums)
-		if 0:#self.improve:
+		# Open input file
+		#
+		# NB: Only works for valid PDF files
+		self.l.info("Input file: \"" + self.input + "\"")
+		driver.uncompress(self.input,self.input+".qdf")
+		embedding_file = open(self.input+".qdf",encoding="iso-8859-1")
+		# Determine start position
+		if 0:#self.improve:#TODO: fix
 			# Parse file
-			tjs = []
 			for line in embedding_file:
 				# Parse line for TJ blocks
 				m = re.search(r'\[(.*)\][ ]?TJ',line)
 				if m != None:
 					tjs += self.get_tjs(m.group(1))
 			start = int(tjs.__len__() * ch_two.random())
-			self.l.debug("Random start position",start)
 			embedding_file.seek(0,0)
+			tjs = []
 		else:
 			start = 0
 		# Parse file
-		tjs = []
+		self.l.info("Extracting data, please wait...")
+		self.print_conf_extract(start,nums)
 		for line in embedding_file:
 			# Parse line for TJ blocks
+			# -> Look for a TJ block, starting at current position
 			m = re.search(r'\[(.*)\][ ]?TJ',line)
 			if m != None:
-				# Try to extract data from TJ block
+				# A TJ block is found
+				# -> Try to extract data from TJ block
 				tjs += self.extract_line(line,ch_two)
+		# Close file and clean up
 		embedding_file.close()
 		driver.delete(self.input+".qdf")
-		normalrange = 1 # Hack for custom range (do not shift by 1), TODO: do that better and include in docs
+		# Extract data from TJ ops
+		normalrange = 1
+		# NB: Hack for custom range (do not shift by 1)
+		# TODO: do that better and include in docs
 		if self.customrange:
 			normalrange = 0
+		# Normalize values
+		#
+		# TODO: check if really necessary
 		tjs = list(map(lambda x: (x - normalrange) % (2**self.nbits), tjs))
+		# Wrap values around in order
+		# to move easily inside
+		#
+		# TODO: use modulo calculation instead
 		tjs_ = tjs + tjs
-		# Extract data
+		# Start extracting after CheckStr
+		#
+		# NB: CheckStr is 20 numerals long
 		k = start + 20
+		# Go through the list of numerals
 		c = 0
 		while c < tjs.__len__():
-			# Look for end position
+			# Look for end position FlagStr
+			# at current position
+			#
+			# NB: FlagStr is 20 numerals long
 			if nums == tjs_[k:k+20]:
+				# End position is found, register it
 				end = k + 20 - 1
 				self.l.debug("End position found",end)
-				#length = end - start + 1
+				# NB: length = end - start + 1
+				# Extract CheckStr
 				checkstr = tjs_[start:start + 20]
+				# Extract data
 				embedded = tjs_[start + 20:k]
+				# Break the loop
 				c = tjs.__len__()
+			# FlagStr not found
+			# -> Look further
 			c += 1
 			k += 1
+		# Check is FlagStr was found
+		#
+		# TODO: check that
 		if c != tjs.__len__() + 1:
+			# FlagStr not found
+			# -> Fail
 			self.l.error("Ending code FlagStr not found")
 			return -1
-		else:
-			# Decode embedded data
-			self.l.debug("Raw data",embedded)
-			k = 0
-			bin_str = ""
-			while k < embedded.__len__():
-				bin = encoding.num_to_binstr(embedded[k],self.nbits)
-				if k == embedded.__len__() - 1:
-					missing = self.nbits
-					self.l.debug("Missing bits",missing)
-					if missing > self.nbits:
-						self.l.error("Trailing data is too long and cannot be decoded")
-						self.l.debug("Raw data (corrupted)",embedded)
-						return -1
-					bin_str += bin[bin.__len__() - missing:]
-				else:
-					bin_str += bin
-				k += 1
-			self.l.debug("Raw binary data",bin_str)
-			emb_chars = encoding.decode(bin_str)
-			emb_str = b""
-			for ch in emb_chars:
-				emb_str += ch
-			#
-			# BEGIN DEBUG CHECKS
-			#
-			if self.l.DEBUG:#TODO: do that better
-				self.debug_extract_print_sum(encoding.encode_key(emb_str,self.nbits),checkstr,embedded)
-			#
-			# END DEBUG CHECKS
-			#
-			# Check integrity
-			if encoding.digest_to_nums(emb_str, self.nbits) != checkstr:
-				self.l.error("CheckStr does not match embedded data")
-				self.l.debug("Raw data (corrupted)",emb_str)
-				return -1
+		# FlagStr was found
+		# -> Decode embedded data
+		self.l.info("Done extracting.")
+		self.l.info("Decoding data, please wait...")
+		# Go through the list of numerals
+		# containing the data
+		k = 0
+		bin_str = ""
+		while k < embedded.__len__():
+			# Decode the next numeral into a binary string
+			bin = encoding.num_to_binstr(embedded[k],self.nbits)
+			# Check if it was the last numeral
+			if k == embedded.__len__() - 1:
+				missing = self.nbits
+				self.l.debug("Missing bits",missing)
+				if missing > self.nbits:
+					# TODO: remove that part
+					self.l.error("Trailing data is too long and cannot be decoded")
+					self.l.debug("Raw data (corrupted)",embedded)
+					return -1
+				# Processing the last numeral
+				# -> Only take the bits needed
+				bin_str += bin[bin.__len__() - missing:]
 			else:
-				self.l.info("Done extracting.")
-				output_file = open(self.output,"wb")
-				output_file.write(emb_str)
-				output_file.close()
-				self.l.info("Output file: \"" + self.output + "\"")
-				self.l.debug("Extracted data","\"" + str(emb_str) + "\"")
-				self.l.debug("Total nb of TJ ops",self.tj_count)
-				self.l.debug("Total nb of valid TJ ops",self.tj_count_valid)
-				self.l.debug("Total nb of valid TJ ops used",embedded.__len__() + 40)
-				self.l.debug("Total nb of valid TJ ops used for data",embedded.__len__())
-				return 0
+				# Not processing the last numeral
+				# -> Take all bits
+				bin_str += bin
+			# -> Keep decoding
+			k += 1
+		# Decode the full binary string into bytes
+		emb_chars = encoding.decode(bin_str)
+		emb_str = b""
+		for ch in emb_chars:
+			emb_str += ch
+		self.debug_extract_print_sum(encoding.encode_key(emb_str,self.nbits),bin_str,checkstr,embedded,emb_str)
+		# Check integrity
+		if encoding.digest_to_nums(emb_str, self.nbits) != checkstr:
+			# Data coes not match embedded checksum
+			# -> Fail
+			self.l.error("CheckStr does not match embedded data")
+			return -1
+		# Data matches checksum
+		self.l.info("Done decoding.")
+		# -> Produce output file
+		output_file = open(self.output,"wb")
+		output_file.write(emb_str)
+		output_file.close()
+		# All finished
+		self.l.info("Output file: \"" + self.output + "\"")
+		return 0
 
 	#
 	#
 	#
 	# DEBUG CHECKS
 	#
+
+	#
+	# Printing tools for debug
+
+	def print_conf(self):
+		self.l.debug("===== BEGIN CONFIG =====")
+		self.l.debugs({
+					  "input":"\"" + self.output + ".qdf\"",
+					  "redundancy":self.redundancy,
+					  "bit depth":self.nbits,
+					  "improvements":self.improve
+					  })
+
+	def print_conf_embed(self,data,nums):
+		self.print_conf()
+		self.l.debugs({
+					  "Data to embed":data,
+					  "Data to embed (binary)":encoding.str_to_binstr(data,self.nbits),
+					  "FlagStr1 (CheckStr)":nums[0],
+					  "FlagStr2":nums[2],
+					  "Data":encoding.msg_to_nums(data,self.nbits)
+					  })
+		self.l.debug("===== END CONFIG =====")
+
+	def print_conf_extract(self,start,nums):
+		self.print_conf()
+		self.l.debugs({
+					  "Random start position":start,
+					  "FlagStr":nums
+					  })
+		self.l.debug("===== END CONFIG =====")
 
 	def debug_embed_check_tj(self,cover_file):
 		if self.l.DEBUG:#TODO: do that better
@@ -635,7 +719,13 @@ class PDF_stego:
 				self.l.debug("Total nb of TJ ops used",ind.__len__())
 				self.l.debug("Total nb of TJ ops used for data",nums[1].__len__())
 
-	def debug_extract_print_sum(self,checksum,checkstr,embedded):
+	def debug_extract_print_sum(self,checksum,bin_str,checkstr,embedded,emb_str):
+		self.l.debug("Raw binary data",bin_str)
+		self.l.debug("Raw data",embedded)
 		self.l.debug("Data Checksum",checksum)
 		self.l.debug("CheckStr",checkstr)
-		self.l.debug("Data",embedded)
+		self.l.debug("Extracted data","\"" + str(emb_str) + "\"")
+		self.l.debug("Total nb of TJ ops",self.tj_count)
+		self.l.debug("Total nb of valid TJ ops",self.tj_count_valid)
+		self.l.debug("Total nb of valid TJ ops used",embedded.__len__() + 40)
+		self.l.debug("Total nb of valid TJ ops used for data",embedded.__len__())
