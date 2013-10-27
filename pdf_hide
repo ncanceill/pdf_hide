@@ -113,12 +113,6 @@ def main():
 		  help="use RED as the redundancy parameter (strictly between 0 and 1)",
 		  metavar="RED"
 		  )
-	#group_options.add_argument("--little-endian",
-	#	  action="store_true",
-	#	  dest="littleendian",
-	#	  help="treat binary data as little endian"
-	#	  )
-	# CLI - Improvements #TODO: clean that up
 	parser.add_argument("-i", "--improve",
 		  action="store_true",
 		  dest="improve",
