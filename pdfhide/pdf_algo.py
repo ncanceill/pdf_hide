@@ -594,16 +594,9 @@ class PDF_stego:
 			bin = encoding.num_to_binstr(embedded[k],self.nbits)
 			# Check if it was the last numeral
 			if k == embedded.__len__() - 1:
-				missing = self.nbits
-				self.l.debug("Missing bits",missing)
-				if missing > self.nbits:
-					# TODO: remove that part
-					self.l.error("Trailing data is too long and cannot be decoded")
-					self.l.debug("Raw data (corrupted)",embedded)
-					return -1
 				# Processing the last numeral
 				# -> Only take the bits needed
-				bin_str += bin[bin.__len__() - missing:]
+				bin_str += bin[bin.__len__() - self.nbits:]
 			else:
 				# Not processing the last numeral
 				# -> Take all bits
