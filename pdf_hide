@@ -175,7 +175,7 @@ will force NBITS to maximum 6)"""
 		if args.key == None:
 			args.key = getpass.getpass("Please enter key: ")
 		if args.customrange:
-			args.nbits = min(nbits,6) # TODO: doc
+			args.nbits = min(args.nbits,6)
 		ps = pdf_algo.PDF_stego(
 			  args.filename,
 			  rl,
