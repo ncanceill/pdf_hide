@@ -27,12 +27,12 @@ from distutils.core import setup
 
 #
 # setup.py
-__version__ = "0.0rc0"
+__version__ = "0.0"
 #
-# This is a Python3 setup script for pdf_hide v0.0rc0
+# This is a Python3 setup script for pdf_hide v0.0
 #
 # Written by Nicolas Canceill
-# Last updated on Oct 27, 2013
+# Last updated on Nov 10, 2013
 # Hosted at https://github.com/ncanceill/pdf_hide
 #
 

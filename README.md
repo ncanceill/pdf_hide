@@ -1,6 +1,6 @@
 # PDF HIDE
 
-This is a steganographic tool in Python for hiding data in [PDF](https://www.adobe.com/devnet/acrobat/pdfs/PDF32000_2008.pdf) files
+This is a steganographic tool in Python for hiding data in [PDF](https://github.com/ncanceill/pdf_hide/wiki/PDF) files
 
 * [What can it do?](#basic-usage)
 * [How can I get it?](#getting-started)
@@ -35,7 +35,7 @@ Additionally, it requires [GNU Make](http://www.gnu.org/software/make/) and [`pd
 
 ### Setup
 
-You can find the latest version packaged on the [releases page](https://github.com/ncanceill/pdf_hide/releases). The current version is 0.0 RC0: [tgz](https://github.com/ncanceill/pdf_hide/archive/v0.0rc0.tar.gz) — [zip](https://github.com/ncanceill/pdf_hide/archive/v0.0rc0.zip).
+You can find the latest version packaged on the [releases page](https://github.com/ncanceill/pdf_hide/releases). The current version is 0.0: [tgz](https://github.com/ncanceill/pdf_hide/archive/v0.0.tar.gz) — [zip](https://github.com/ncanceill/pdf_hide/archive/v0.0.zip).
 
 Alternatively, you can clone the git repository at: `github.com/ncanceill/pdf_hide.git`
 
@@ -45,15 +45,13 @@ You can install the package (as root) on your system's Python path with: `make i
 
 ## Project status
 
-Current version is [0.0 RC0](https://github.com/ncanceill/pdf_hide/releases/tag/v0.0rc0).
+Current version is [0.0](https://github.com/ncanceill/pdf_hide/releases/tag/v0.0).
 
 Please check the [project status](https://github.com/ncanceill/pdf_hide/wiki/Status) for more details.
 
 ### Stability
 
-The current version is STABLE, but it is a pre-release. It should only be run in production _with extreme care_.
-
-The `master` branch is STABLE and may be run in production _with extreme care_.
+The current version is STABLE. It may be run in production.
 
 ### Contributions
 
@@ -61,7 +59,7 @@ General rule: any contributions are welcome.
 
 Do not hesitate to [drop an issue](https://github.com/ncanceill/pdf_hide/issues/new) if you found a bug, if you either want to see a new feature or wish to suggest an improvement, or even if you simply have a question.
 
-Please check the [contributions status](https://github.com/ncanceill/pdf_hide/wiki/Contribute#status) if you want to get involved.
+Please check the [contribution status](https://github.com/ncanceill/pdf_hide/wiki/Contribute#status) if you want to get involved.
 
 ## License information
 
