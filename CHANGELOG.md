@@ -2,6 +2,24 @@
 
 Check out all PDF HIDE releases on [GitHub](https://github.com/ncanceill/pdf_hide/releases).
 
+## Version 0.0
+
+### Status
+
+This version is STABLE.
+
+This version can be used for:
+* Internal development
+* Testing
+* Production
+
+### Changelog
+
+[Changelog discussion](https://github.com/ncanceill/pdf_hide/issues/15)
+
+* Cosmetic
+* Fixed a bug with some combinations of options
+
 ## Version 0.0 release candidate 0
 
 WARNING: this is a not a final release version
