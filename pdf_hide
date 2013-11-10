@@ -153,6 +153,8 @@ will force NBITS to maximum 6)"""
 	# Exec
 	if args.verbose >= 0:
 		logger.print_splash()
+		if args.verbose > 0:
+			logger.print_discl()
 	if args.action == "embed" or args.action == "m":
 		if args.key == None:
 			args.key = getpass.getpass("Please enter key: ")
@@ -166,9 +168,8 @@ will force NBITS to maximum 6)"""
 			  customrange=args.customrange
 			  )
 		result = ps.embed(args.data.read(),args.key,norandom=args.norandom)
-		if args.verbose >= 0:
-			logger.print_discl()
 		if result > 0:
+			logger.print_end()
 			exit(0)
 		exit(result)
 	elif args.action == "extract" or args.action == "x":
@@ -186,8 +187,8 @@ will force NBITS to maximum 6)"""
 			  customrange=args.customrange
 			  )
 		result = ps.extract(args.key)
-		if args.verbose >= 0:
-			logger.print_discl()
+		if result == 0:
+			logger.print_end()
 		exit(result)
 
 if __name__ == '__main__':

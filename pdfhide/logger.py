@@ -51,6 +51,7 @@ DEBUG=2
 MSG_VERSION = "This is PDF_HIDE v" + __version__
 MSG_DESC = """A steganographic tool for hiding data inside PDF files
 Hosted at https://github.com/ncanceill/pdf_hide"""
+MSG_END = """My job is done!"""
 MSG_LICENSE = """PDF_HIDE  Copyright (C) 2013  Nicolas Canceill
 Distributed under GNU General Public License v3
 This program comes with ABSOLUTELY NO WARRANTY.
@@ -73,11 +74,15 @@ def print_splash():
 	print(MSG_VERSION)
 	print("====================")
 
+# Print end message
+def print_end():
+	print(MSG_END)
+
 # Print disclaimer
 def print_discl():
-	print("====================")
+	print("")
 	print(MSG_LICENSE)
-	print("====================")
+	print("")
 
 # Print maintenance info
 def print_maint():
