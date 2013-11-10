@@ -55,24 +55,6 @@ The current version is STABLE, but it is a pre-release. It should only be run in
 
 The `master` branch is STABLE and may be run in production _with extreme care_.
 
-### Changelog
-
-#### version 0.0rc0
-
-[Changelog discussion](https://github.com/ncanceill/pdf_hide/issues/10)
-
-* Fixed bugs about custom range
-* Fixed bugs about custom range and nbits
-* Fixed bugs in tests automation
-* Fixed bugs with terminal emulation
-* Added multi-encoding support for datafile
-* Packaged portable code
-* Refactored code
-
-#### version 0.0b
-
-[Changelog discussion](https://github.com/ncanceill/pdf_hide/issues/9)
-
 ### Contributions
 
 General rule: any contributions are welcome.
