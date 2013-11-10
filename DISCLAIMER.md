@@ -1,13 +1,11 @@
 # DISCLAIMER
 
-Distributed under GNU General Public License v3
+PDF HIDE is distributed under GNU General Public License v3.
 
 This program comes with ABSOLUTELY NO WARRANTY.
 
 This is free software, and you are welcome to
 redistribute it under certain conditions.
-
-PDF_HIDE  Copyright (C) 2013  Nicolas Canceill
 
 ## LICENSE
 
